@@ -98,6 +98,14 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .slide canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; border-radius: 4px; }
 .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.perf { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 4px 10px; align-items: start; font-size: 13px; padding: 10px 12px; border-radius: 8px; background: var(--sunk); }
+.perf i { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; }
+.perf b { font-weight: 600; }
+.perf span { color: var(--muted); grid-column: 2; }
+.perf.good i { background: var(--good); } .perf.warn i { background: var(--warn); } .perf.bad i { background: var(--bad); }
+.pill.bad { border-color: var(--bad); color: var(--bad); }
+.map-cap { display: flex; gap: 12px; align-items: flex-start; }
+.map-cap .hint { margin: 0; flex: 1; min-width: 0; }
 .biome-notes { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px 16px; font-size: 12.5px; }
 .biome-notes b { display: block; font-size: 13px; }
 .go { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
@@ -222,7 +230,15 @@ details.rules summary { cursor: pointer; font-family: var(--display); font-size:
   .champ { grid-template-columns: 96px minmax(0,1fr); }
   .champ canvas { width: 96px; height: 96px; }
   .figs { grid-template-columns: repeat(2, minmax(0,1fr)); }
-  .biome-notes { grid-template-columns: minmax(0,1fr); }
+  .perf { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 4px 10px; align-items: start; font-size: 13px; padding: 10px 12px; border-radius: 8px; background: var(--sunk); }
+.perf i { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; }
+.perf b { font-weight: 600; }
+.perf span { color: var(--muted); grid-column: 2; }
+.perf.good i { background: var(--good); } .perf.warn i { background: var(--warn); } .perf.bad i { background: var(--bad); }
+.pill.bad { border-color: var(--bad); color: var(--bad); }
+.map-cap { display: flex; gap: 12px; align-items: flex-start; }
+.map-cap .hint { margin: 0; flex: 1; min-width: 0; }
+.biome-notes { grid-template-columns: minmax(0,1fr); }
   .hud { gap: 12px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
@@ -237,6 +253,7 @@ details.rules summary { cursor: pointer; font-family: var(--display); font-size:
       <div><span class="label">Organisms</span><b id="h-pop">0</b></div>
       <div><span class="label">Species alive</span><b id="h-sp">0</b></div>
       <div><span class="label">Generations</span><b id="h-gen">0</b></div>
+      <div><span class="label">Days / sec</span><b id="h-dps">0</b></div>
     </div>
   </header>
 
@@ -246,7 +263,7 @@ details.rules summary { cursor: pointer; font-family: var(--display); font-size:
       <div style="display:grid; gap:18px; min-width:0">
         <div class="intro">
           <h2>Build a world, release life, and see <em>how long it lasts.</em></h2>
-          <p>Nothing here is told what to become. Organisms are bodies of cells that must pay for themselves in energy. They eat, move, breed, mutate, and die.</p>
+          <p>Nothing here is told what to become. Organisms are bodies of cells that must pay for themselves in energy. They eat, move, breed with small copying errors, and die. Plants, grazers, hunters and scavengers all start simple. Whatever survives is what evolution found. Your job is the stage: how big, how harsh, and who arrives.</p>
         </div>
         <div class="panel">
           <div class="group">
@@ -255,13 +272,16 @@ details.rules summary { cursor: pointer; font-family: var(--display); font-size:
           </div>
           <div class="group">
             <h3>World</h3>
-            <div class="row"><label>Size</label><div class="seg" id="size"><button data-v="small">Small</button><button data-v="medium">Medium</button><button data-v="large">Large</button></div><span></span></div>
-            <p class="hint">Bigger worlds hold more separate pockets of life, so a local crash is less likely to end everything.</p>
+            <div class="row"><label>Size</label><div class="seg" id="size"><button data-v="small">Small</button><button data-v="medium">Medium</button><button data-v="large">Large</button><button data-v="huge">Huge</button></div><span></span></div>
+            <div class="row"><label for="mw">Width</label><input type="range" id="mw" min="60" max="640" step="10"><output id="mwo"></output></div>
+            <div class="row"><label for="mh">Height</label><input type="range" id="mh" min="40" max="400" step="10"><output id="mho"></output></div>
+            <div class="perf" id="perf" role="status"></div>
+            <p class="hint">Bigger worlds hold more separate pockets of life, so a local crash is less likely to end everything. They also take more computing.</p>
             <div class="row"><label for="b0"><i class="sw" style="background:#3a5a2f"></i>Grassland</label><input type="range" id="b0" min="0" max="5" step="1"><output id="b0o"></output></div>
             <div class="row"><label for="b1"><i class="sw" style="background:#1f4a32"></i>Forest</label><input type="range" id="b1" min="0" max="5" step="1"><output id="b1o"></output></div>
             <div class="row"><label for="b2"><i class="sw" style="background:#7a6438"></i>Desert</label><input type="range" id="b2" min="0" max="5" step="1"><output id="b2o"></output></div>
             <div class="row"><label for="b3"><i class="sw" style="background:#5d7286"></i>Tundra</label><input type="range" id="b3" min="0" max="5" step="1"><output id="b3o"></output></div>
-            <div class="row"><label for="b4"><i class="sw" style="background:#3e6256"></i>Bog</label><input type="range" id="b4" min="0" max="5" step="1"><output id="b4o"></output></div>
+            <div class="row"><label for="b4"><i class="sw" style="background:#306868"></i>Bog</label><input type="range" id="b4" min="0" max="5" step="1"><output id="b4o"></output></div>
           </div>
           <div class="group">
             <h3>Founders</h3>
@@ -278,7 +298,7 @@ details.rules summary { cursor: pointer; font-family: var(--display); font-size:
             <div class="toggles">
               <label class="tog"><input type="checkbox" id="t-seasons"><span><b>Seasons</b><small>Light swells in summer and fades in winter, with frost at the bottom of the year.</small></span></label>
               <label class="tog"><input type="checkbox" id="t-events"><span><b>Random disasters</b><small>Droughts, ice ages, blooms, meteors and plagues strike every few years.</small></span></label>
-              <label class="tog"><input type="checkbox" id="t-barriers"><span><b>Mountain ranges</b><small>Ridges between biomes with narrow passes. Isolated populations drift apart into new species.</small></span></label>
+              <label class="tog"><input type="checkbox" id="t-barriers"><span><b>Mountain ranges</b><small>Ridges along the high ground, broken by narrow passes. Isolated populations drift apart into new species.</small></span></label>
               <label class="tog"><input type="checkbox" id="t-staged"><span><b>Succession</b><small>Plants settle first, grazers arrive once there is enough to eat, then scavengers and predators. Turn off to release everyone at once.</small></span></label>
             </div>
           </div>
@@ -292,6 +312,7 @@ details.rules summary { cursor: pointer; font-family: var(--display); font-size:
       </div>
       <div class="preview-wrap">
         <div class="slide"><canvas id="preview"></canvas></div>
+        <div class="map-cap"><p class="hint">Each seed draws a new map. The sliders set how much ground each environment covers and the climate decides where it goes: tundra at the cold poles and on high ground, desert where it is hot and dry, bog in wet lowland, forest on other wet ground.</p><button class="btn" id="newmap">New map</button></div>
         <div class="biome-notes" id="biome-notes"></div>
         <details class="rules">
           <summary>How the world works</summary>
@@ -404,18 +425,18 @@ const ROLE_VARS = ['--plant', '--grazer', '--predator', '--scavenger', '--other'
 const ROLE_SING = ['Plant', 'Grazer', 'Predator', 'Scavenger', 'Oddity'];
 const CELL_RGB = [null, [92, 196, 106], [242, 193, 78], [89, 167, 232], [240, 82, 74], [154, 160, 178], [244, 244, 236]];
 const CELL_DESC = ['', 'Producer', 'Mouth', 'Mover', 'Killer', 'Armour', 'Eye'];
-const BIOME_RGB = [[30, 44, 27], [17, 38, 27], [52, 43, 25], [30, 38, 47], [20, 38, 36]];
-const WALL_RGB = [70, 66, 60];
+const BIOME_RGB = [[38, 56, 33], [20, 48, 33], [72, 58, 32], [42, 52, 66], [22, 54, 54]];
+const WALL_RGB = [118, 110, 100];
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const yr = t => (t / K.YEAR);
 const fmtYr = t => yr(t).toFixed(t < K.YEAR * 10 ? 2 : 1);
 
 // ---------------------------------------------------------------- settings
-const DEFAULTS = { size: 'medium', biomes: [3, 2, 1, 1, 1], plants: 300, grazers: 60, predators: 12, scavengers: 30,
+const DEFAULTS = { width: 160, height: 100, biomes: [3, 2, 1, 1, 1], plants: 300, grazers: 60, predators: 12, scavengers: 30,
   sunlight: 1.0, mutation: 1.0, seasons: true, randomEvents: true, barriers: false, staged: true };
 const PRESETS = [
   { name: 'Balanced', cfg: {} },
-  { name: 'Island chain', cfg: { size: 'large', biomes: [2, 2, 1, 1, 1], barriers: true } },
+  { name: 'Island chain', cfg: { width: 220, height: 136, biomes: [2, 2, 1, 1, 1], barriers: true } },
   { name: 'Deep forest', cfg: { biomes: [1, 4, 0, 0, 0], predators: 20 } },
   { name: 'Carnivore bog', cfg: { biomes: [1, 1, 0, 0, 4], mutation: 2 } },
   { name: 'Single ancestor', cfg: { grazers: 0, predators: 0, scavengers: 0, mutation: 2.5 } },
@@ -445,12 +466,30 @@ for (const [id, key] of Object.entries(toggles)) {
   refreshers.push(() => { el.checked = cfg[key]; });
 }
 const sizeSeg = $('#size');
-sizeSeg.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; cfg.size = b.dataset.v; onCfgChange(); });
-refreshers.push(() => sizeSeg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === cfg.size)));
+sizeSeg.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; [cfg.width, cfg.height] = EvoSim.SIZES[b.dataset.v]; onCfgChange(); });
+refreshers.push(() => sizeSeg.querySelectorAll('button').forEach(b => { const [w, h] = EvoSim.SIZES[b.dataset.v]; b.setAttribute('aria-pressed', w === cfg.width && h === cfg.height); }));
+refreshers.push(bindRange('mw', () => cfg.width, v => cfg.width = v, v => v));
+refreshers.push(bindRange('mh', () => cfg.height, v => cfg.height = v, v => v));
+// Cost grows with the number of tiles: about 0.12 microseconds per tile per simulated day on a typical laptop.
+const MS_PER_TILE = 0.00012;
+function perfEstimate(w, h) {
+  const tiles = w * h, ms = tiles * MS_PER_TILE, orgs = Math.round(tiles * 0.14 / 100) * 100;
+  const maxDays = Math.round(1000 / Math.max(ms, 0.4) * 0.45);
+  if (tiles <= 40000) return { level: 'good', tiles, orgs, title: 'Runs smoothly', text: `About ${orgs.toLocaleString()} organisms at a time. Max speed reaches roughly ${maxDays.toLocaleString()} days a second.` };
+  if (tiles <= 90000) return { level: 'warn', tiles, orgs, title: 'Slower', text: `About ${orgs.toLocaleString()} organisms. Fine on a desktop; Max speed drops to roughly ${maxDays.toLocaleString()} days a second, so long runs take a while.` };
+  if (tiles <= 150000) return { level: 'warn', tiles, orgs, title: 'Heavy', text: `About ${orgs.toLocaleString()} organisms. Expect a lower frame rate even at 1×, and around ${maxDays.toLocaleString()} days a second at Max. Best on a fast desktop.` };
+  return { level: 'bad', tiles, orgs, title: 'Very heavy', text: `About ${orgs.toLocaleString()} organisms. Phones and laptops may stutter or freeze. Consider a smaller map.` };
+}
+refreshers.push(() => {
+  const p = perfEstimate(cfg.width, cfg.height), el = $('#perf');
+  el.className = 'perf ' + p.level;
+  el.innerHTML = `<i></i><b>${cfg.width} × ${cfg.height} = ${p.tiles.toLocaleString()} tiles · ${p.title}</b><span>${p.text}</span>`;
+});
 const seedIn = $('#seed');
 seedIn.addEventListener('change', () => { cfg.seed = (parseInt(seedIn.value, 10) || rndSeed()) >>> 0; onCfgChange(); });
 refreshers.push(() => { seedIn.value = cfg.seed; });
 $('#reseed').addEventListener('click', () => { cfg.seed = rndSeed(); onCfgChange(); });
+$('#newmap').addEventListener('click', () => { cfg.seed = rndSeed(); onCfgChange(); });
 const presetBox = $('#presets');
 for (const p of PRESETS) {
   const b = document.createElement('button'); b.className = 'chip'; b.textContent = p.name;
@@ -464,7 +503,7 @@ let previewTimer = 0;
 function onCfgChange() {
   if (cfg.biomes.every(v => v === 0)) cfg.biomes[0] = 1;
   refreshers.forEach(f => f());
-  clearTimeout(previewTimer); previewTimer = setTimeout(drawPreview, 30);
+  clearTimeout(previewTimer); previewTimer = setTimeout(drawPreview, 120);
 }
 function drawPreview() {
   const w = new World(Object.assign({}, cfg, { plants: 0, grazers: 0, predators: 0, scavengers: 0 }));
@@ -475,9 +514,10 @@ function drawPreview() {
   const d = img.data;
   for (let i = 0; i < w.W * w.H; i++) {
     const t = w.terrain[i];
-    const rgb = t === WALL ? WALL_RGB : [[58, 90, 47], [31, 74, 50], [122, 100, 56], [93, 114, 134], [62, 98, 86]][t];
+    const rgb = t === WALL ? [150, 142, 130] : [[58, 90, 47], [31, 74, 50], [122, 100, 56], [93, 114, 134], [48, 104, 104]][t];
     const n = ((i * 2654435761) >>> 0) % 7 - 3;
-    d[i * 4] = rgb[0] + n; d[i * 4 + 1] = rgb[1] + n; d[i * 4 + 2] = rgb[2] + n; d[i * 4 + 3] = 255;
+    const k = 0.7 + w.shade[i] * 0.0024;
+    d[i * 4] = rgb[0] * k + n; d[i * 4 + 1] = rgb[1] * k + n; d[i * 4 + 2] = rgb[2] * k + n; d[i * 4 + 3] = 255;
   }
   ctx.putImageData(img, 0, 0);
 }
@@ -529,7 +569,7 @@ function startRun(seedOverride) {
   selected = null; selectedLast = null; armed = null; frame = 0;
   feedItems = []; noted = new Set(); roleState = [false, false, false, false]; seenEvents = 0;
   rowCache.forEach(r => r.el.remove()); rowCache.clear();
-  addFeed(0, `A ${cfg.size} world of ${describeBiomes()} is seeded with ${cfg.plants} plants.`, '');
+  addFeed(0, `A ${cfg.width} × ${cfg.height} world of ${describeBiomes()} is seeded with ${cfg.plants} plants.`, '');
   $('#setup').hidden = true; $('#summary').hidden = true; $('#run').hidden = false; $('#hud').hidden = false;
   $('#inspect').innerHTML = '<p class="inspect-empty">Click an organism on the slide, or a species below, to see its body, its genes and where its lineage came from.</p>';
   setSpeed(1); setColorMode(colorMode);
@@ -618,7 +658,7 @@ function render() {
   const cell32 = CELL_RGB.map(c => c ? pack(c[0], c[1], c[2]) : 0);
   const plant32 = pack(52, 128, 66);
   const spCache = new Map();
-  const { occ, cellT, food, foodK, terrain, orgs } = w;
+  const { occ, cellT, food, foodK, terrain, orgs, shade } = w;
   for (let i = 0; i < N; i++) {
     const oc = occ[i];
     if (oc) {
@@ -635,13 +675,14 @@ function render() {
       continue;
     }
     const t = terrain[i];
-    if (t === WALL) { buf32[i] = wall32; continue; }
+    const kk = 0.72 + shade[i] * 0.0022; // relief shading
+    if (t === WALL) { buf32[i] = pack(WALL_RGB[0] * kk * 1.15, WALL_RGB[1] * kk * 1.15, WALL_RGB[2] * kk * 1.15); continue; }
     const f = food[i];
     if (f > 0.6) {
-      const base = terr[t], a = Math.min(0.85, f / 14);
+      const b0 = terr[t], base = [b0[0] * kk, b0[1] * kk, b0[2] * kk], a = Math.min(0.85, f / 14);
       const fr = foodK[i] === 2 ? [128, 44, 40] : [107, 84, 50];
       buf32[i] = pack(base[0] + (fr[0] - base[0]) * a, base[1] + (fr[1] - base[1]) * a, base[2] + (fr[2] - base[2]) * a);
-    } else buf32[i] = terr32[t];
+    } else { const b0 = terr[t]; buf32[i] = pack(b0[0] * kk, b0[1] * kk, b0[2] * kk); }
   }
   octx.putImageData(img, 0, 0);
   ctx.imageSmoothingEnabled = false;
@@ -682,6 +723,8 @@ function updateHud() {
   $('#h-sp').textContent = c.spAlive;
   $('#h-gen').textContent = w.maxGen;
   const act = w.events.map(e => `<span class="pill hot">${e.name}, ${Math.max(0, (e.until - w.tick) / K.YEAR).toFixed(2)} yr left</span>`);
+  if (perfStat.msPerDay > 14 && speed !== 0) act.push(`<span class="pill bad" title="Each simulated day takes ${perfStat.msPerDay.toFixed(0)} ms">Heavy load: ${perfStat.msPerDay.toFixed(0)} ms per day. A smaller map will run faster.</span>`);
+  else if (perfStat.msPerDay > 8 && speed >= 2) act.push(`<span class="pill hot">Busy: ${perfStat.msPerDay.toFixed(0)} ms per day</span>`);
   if (w.pending && w.pending.length) act.push(`<span class="pill">Waiting: ${w.pending.map(p => p.kind + 's').join(', ')}</span>`);
   $('#active-events').innerHTML = act.join('');
 }
@@ -897,15 +940,27 @@ function renderInspect(force) {
 }
 
 // ---------------------------------------------------------------- main loop
+const perfStat = { days: 0, stepMs: 0, since: performance.now(), msPerDay: 0, dps: 0 };
+function updatePerf() {
+  const now = performance.now(), dt = now - perfStat.since;
+  if (dt < 1000) return;
+  perfStat.dps = perfStat.days / (dt / 1000);
+  if (perfStat.days) perfStat.msPerDay = perfStat.stepMs / perfStat.days;
+  perfStat.days = 0; perfStat.stepMs = 0; perfStat.since = now;
+  $('#h-dps').textContent = speed === 0 ? 'paused' : Math.round(perfStat.dps).toLocaleString();
+}
 function loop() {
   requestAnimationFrame(loop);
   if (!world || $('#run').hidden) return;
   frame++;
   const n = SPEED_TICKS[speed];
-  if (n === Infinity) { const t0 = performance.now(); while (performance.now() - t0 < 28 && !world.ended) world.step(); }
+  const t0 = performance.now(), d0 = world.tick;
+  if (n === Infinity) { while (performance.now() - t0 < 28 && !world.ended) world.step(); }
   else for (let i = 0; i < n && !world.ended; i++) world.step();
+  perfStat.days += world.tick - d0; perfStat.stepMs += performance.now() - t0;
   if (selected && !selected.alive) selected = null;
   render();
+  updatePerf();
   if (frame % 6 === 0) updateHud();
   if (frame % 30 === 0 || (speed === 0 && frame % 60 === 0)) refreshSide(false);
   if (world.ended) { refreshSide(true); showSummary(); }
@@ -1008,7 +1063,7 @@ function showSummary() {
       <div class="card span-6">
         <h3>The run</h3>
         <div class="innov">${w.eventLog.filter(e => e.type !== 'arrival').length ? w.eventLog.filter(e => e.type !== 'arrival').slice(0, 10).map(e => `<div><span class="yr">Y${fmtYr(e.tick)}</span><span>${e.name}</span></div>`).join('') : '<p class="muted">No disasters struck this world.</p>'}</div>
-        <p class="hint" style="margin-top:12px">${cfg.size[0].toUpperCase() + cfg.size.slice(1)} world of ${describeBiomes()}. Founders: ${cfg.plants} plants, ${cfg.grazers} grazers, ${cfg.predators} predators, ${cfg.scavengers} scavengers. Sunlight ${Math.round(cfg.sunlight * 100)}%, mutation ${cfg.mutation}×.</p>
+        <p class="hint" style="margin-top:12px">A ${cfg.width} × ${cfg.height} world of ${describeBiomes()}. Founders: ${cfg.plants} plants, ${cfg.grazers} grazers, ${cfg.predators} predators, ${cfg.scavengers} scavengers. Sunlight ${Math.round(cfg.sunlight * 100)}%, mutation ${cfg.mutation}×.</p>
       </div>
     </div>
     <div class="actions">

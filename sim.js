@@ -77,7 +77,7 @@ const BIOMES = [
 ];
 const WALL = 255;
 
-const SIZES = { small: [120, 76], medium: [160, 100], large: [220, 136] };
+const SIZES = { small: [120, 76], medium: [160, 100], large: [220, 136], huge: [320, 200] };
 
 function mulberry32(a) {
   return function () {
@@ -160,6 +160,20 @@ function makeGenus(rng) {
   s += GEN_END[Math.floor(rng() * GEN_END.length)];
   return s[0].toUpperCase() + s.slice(1);
 }
+// Smooth value noise on a seeded lattice (returns 0..1).
+function makeNoise(rng) {
+  const P = 256, perm = new Uint16Array(P * 2), val = new Float32Array(P);
+  for (let i = 0; i < P; i++) { perm[i] = i; val[i] = rng(); }
+  for (let i = P - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const t = perm[i]; perm[i] = perm[j]; perm[j] = t; }
+  for (let i = 0; i < P; i++) perm[i + P] = perm[i];
+  const h = (x, y) => val[perm[(perm[x & 255] + y) & 511] & 255];
+  const sm = t => t * t * (3 - 2 * t);
+  return (x, y) => {
+    const xi = Math.floor(x), yi = Math.floor(y), fx = sm(x - xi), fy = sm(y - yi);
+    const a = h(xi, yi), b = h(xi + 1, yi), c = h(xi, yi + 1), d = h(xi + 1, yi + 1);
+    return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
+  };
+}
 function pick(rng, arr) { return arr[Math.floor(rng() * arr.length)]; }
 function makeEpithet(rng, cnt, n, role) {
   const opts = [];
@@ -214,7 +228,8 @@ class World {
       seed: 12345, size: 'medium', biomes: [3, 2, 1, 1, 1], plants: 300, grazers: 60, predators: 12,
       scavengers: 15, sunlight: 1.0, mutation: 1.0, seasons: true, randomEvents: true, barriers: false, staged: true,
     }, cfg || {});
-    const [W, H] = SIZES[this.cfg.size] || SIZES.medium;
+    let [W, H] = SIZES[this.cfg.size] || SIZES.medium;
+    if (this.cfg.width && this.cfg.height) { W = Math.max(40, Math.min(800, this.cfg.width | 0)); H = Math.max(30, Math.min(500, this.cfg.height | 0)); }
     this.W = W; this.H = H;
     this.rng = mulberry32(this.cfg.seed >>> 0);
     const N = W * H;
@@ -257,40 +272,81 @@ class World {
   }
 
   // ---------------- terrain ----------------
+  // Procedural map. Noise gives each tile an elevation, a temperature (cold toward the poles and up high)
+  // and a moisture level. Biomes then claim tiles in a fixed order, each taking exactly its share of the
+  // map from the tiles that suit it best: the coldest become tundra, hot dry ground desert, wet lowland bog,
+  // other wet ground forest, and the rest grassland. So the sliders set the proportions and the seed sets
+  // the geography.
   buildTerrain() {
-    const { W, H } = this;
+    const { W, H } = this, N = W * H, rng = this.rng;
     const NB = BIOMES.length;
     const w = BIOMES.map((_, i) => Math.max(0, this.cfg.biomes[i] || 0));
     const tot = w.reduce((a, b) => a + b, 0) || 1;
-    const bounds = []; let acc = 0;
-    for (let i = 0; i < NB; i++) { acc += w[i] / tot; bounds.push(acc * W); }
-    const ph = this.rng() * 10;
-    for (let y = 0; y < H; y++) {
-      const wob = Math.sin(y * 0.13 + ph) * 2.5 + Math.sin(y * 0.041 + ph * 2) * 3;
-      for (let x = 0; x < W; x++) {
-        let b = NB - 1;
-        for (let i = 0; i < NB; i++) if (x < bounds[i] + (i < NB - 1 ? wob : 0)) { b = i; break; }
-        if (w[b] === 0) { // biome slider at zero: fall back to nearest non-zero
-          for (let k = 0; k < NB; k++) if (w[k] > 0) { b = k; break; }
-        }
-        this.terrain[y * W + x] = b;
-      }
+    const noise = makeNoise(rng);
+    const fbm = (x, y, f, oct) => { let v = 0, a = 1, n = 0; for (let o = 0; o < oct; o++) { v += a * noise(x * f, y * f); n += a; a *= 0.5; f *= 2; } return v / n; };
+    const ox = rng() * 1000, oy = rng() * 1000, eqShift = (rng() - 0.5) * 0.3;
+    const elev = new Float32Array(N), temp = new Float32Array(N), moist = new Float32Array(N), jit = new Float32Array(N);
+    const sc = 1 / Math.max(W, H);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const i = y * W + x;
+      // domain warp makes coastlines and borders organic instead of blobby
+      const wx = x + 14 * (fbm(x + ox + 50, y + oy, 3 * sc, 2) - 0.5) * 2;
+      const wy = y + 14 * (fbm(x + ox, y + oy + 50, 3 * sc, 2) - 0.5) * 2;
+      elev[i] = fbm(wx + ox, wy + oy, 4 * sc, 4);
+      moist[i] = fbm(wx + ox + 300, wy + oy + 300, 5 * sc, 4);
+      const lat = Math.min(1, Math.abs(y / (H - 1) - 0.5 - eqShift) * 2);
+      temp[i] = 1 - 0.75 * lat - 0.45 * Math.max(0, elev[i] - 0.45) + 0.35 * (fbm(wx + ox + 600, wy + oy + 600, 6 * sc, 3) - 0.5);
+      jit[i] = rng() * 0.02;
     }
+    const score = [
+      i => 0,                                             // grassland takes what is left
+      i => moist[i] * 1.0 + elev[i] * 0.25,               // forest: wet ground
+      i => temp[i] * 0.8 - moist[i] * 1.1,                // desert: hot and dry
+      i => -temp[i],                                      // tundra: the coldest ground
+      i => moist[i] * 1.2 - elev[i] * 1.0,                // bog: wet lowland
+    ];
+    const order = [3, 2, 4, 1];
+    const terrain = this.terrain;
+    terrain.fill(255);
+    const fallback = w.findIndex(v => v > 0);
+    for (const b of order) {
+      const want = Math.round(N * w[b] / tot);
+      if (!want) continue;
+      const free = [];
+      for (let i = 0; i < N; i++) if (terrain[i] === 255) free.push(i);
+      const f = score[b];
+      free.sort((p, q) => (f(q) + jit[q]) - (f(p) + jit[p]));
+      for (let k = 0; k < want && k < free.length; k++) terrain[free[k]] = b;
+    }
+    for (let i = 0; i < N; i++) if (terrain[i] === 255) terrain[i] = w[0] > 0 ? 0 : fallback;
+    // two passes of a majority filter remove speckle while keeping the shapes
+    const tmp = new Uint8Array(N), cnt = new Uint8Array(NB);
+    for (let pass = 0; pass < 2; pass++) {
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        cnt.fill(0);
+        for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+          const xx = Math.min(W - 1, Math.max(0, x + dx)), yy = Math.min(H - 1, Math.max(0, y + dy));
+          cnt[terrain[yy * W + xx]]++;
+        }
+        let best = terrain[y * W + x];
+        for (let b = 0; b < NB; b++) if (cnt[b] > cnt[best] && cnt[b] >= 5) best = b;
+        tmp[y * W + x] = best;
+      }
+      terrain.set(tmp);
+    }
+    // mountain ranges follow ridges in the elevation field, broken by passes
     if (this.cfg.barriers) {
-      for (let i = 0; i < NB - 1; i++) {
-        if (w[i] === 0 || bounds[i] >= W - 1) continue;
-        for (let y = 0; y < H; y++) {
-          const wob = Math.sin(y * 0.13 + ph) * 2.5 + Math.sin(y * 0.041 + ph * 2) * 3;
-          const x0 = Math.round(bounds[i] + wob);
-          const gap = (y % 34) < 4; // mountain passes
-          if (gap) continue;
-          for (let dx = 0; dx < 2; dx++) {
-            const x = x0 + dx;
-            if (x > 0 && x < W - 1) this.terrain[y * W + x] = WALL;
-          }
-        }
+      const px = rng() * 1000;
+      for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+        const i = y * W + x;
+        const r = 1 - Math.abs(2 * fbm(x + px, y + px, 5 * sc, 3) - 1);
+        const pass = fbm(x + px + 77, y + px + 77, 9 * sc, 2) < 0.33;
+        if (r > 0.972 && !pass) terrain[i] = WALL;
       }
     }
+    // relief shading for the map (bright highs, dark lows)
+    this.shade = new Uint8Array(N);
+    for (let i = 0; i < N; i++) this.shade[i] = Math.max(0, Math.min(255, Math.round(150 + (elev[i] - 0.5) * 260)));
   }
   biomeAt(idx) { const t = this.terrain[idx]; return t === WALL ? null : BIOMES[t]; }
 
