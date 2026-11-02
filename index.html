@@ -1,0 +1,1995 @@
+<title>Primordia</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400;1,6..72,500&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a lab bench. The world is a dark specimen slide in the middle of a pale field notebook;
+   controls sit on the bench around it, notes and charts run down the right margin. */
+:root {
+  --bg: #e9ede6;          /* lichen paper */
+  --surface: #f6f8f3;
+  --sunk: #dfe5dc;
+  --ink: #15211c;
+  --muted: #5b6a63;
+  --line: #c6cfc6;
+  --accent: #2b45c6;      /* ultramarine stain */
+  --accent-ink: #ffffff;
+  --slide: #0d1311;       /* the world is always viewed on a dark slide */
+  --plant: #3c9a4d; --grazer: #c99419; --predator: #cf4336; --scavenger: #8656c2; --other: #7b8a84;
+  --good: #2f8a4a; --warn: #b7791f; --bad: #c0392b;
+  --display: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #101614; --surface: #161e1b; --sunk: #1c2622; --ink: #e2e9e4; --muted: #92a39a; --line: #2b3732;
+  --accent: #91a3ff; --accent-ink: #0d1330; --slide: #090d0c;
+  --plant: #5cbd6b; --grazer: #e2b03c; --predator: #ee6a5c; --scavenger: #a983e0; --other: #93a39c;
+  --good: #5cbd6b; --warn: #e2b03c; --bad: #ee6a5c; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #101614; --surface: #161e1b; --sunk: #1c2622; --ink: #e2e9e4; --muted: #92a39a; --line: #2b3732;
+  --accent: #91a3ff; --accent-ink: #0d1330; --slide: #090d0c;
+  --plant: #5cbd6b; --grazer: #e2b03c; --predator: #ee6a5c; --scavenger: #a983e0; --other: #93a39c;
+  --good: #5cbd6b; --warn: #e2b03c; --bad: #ee6a5c; color-scheme: dark }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { min-height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.5 var(--body); margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 32px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+.binom { font-family: var(--display); font-style: italic; }
+.muted { color: var(--muted); }
+.wrap { max-width: 1440px; margin: 0 auto; }
+
+/* ---------- top bar ---------- */
+.top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding-block: 14px; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+.brand { display: flex; align-items: baseline; gap: 10px; margin-right: auto; }
+.brand h1 { font-size: 28px; font-style: italic; font-weight: 500; }
+.brand span { color: var(--muted); font-size: 13px; }
+.hud { display: flex; gap: 18px; flex-wrap: wrap; align-items: baseline; }
+.hud div { display: flex; flex-direction: column; }
+.hud b { font-family: var(--mono); font-weight: 500; font-size: 16px; font-variant-numeric: tabular-nums; }
+
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 7px 12px; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; }
+.btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; background: var(--surface); }
+.seg button { border: 0; background: transparent; padding: 6px 11px; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+/* ---------- setup ---------- */
+.setup { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 28px; align-items: start; }
+.intro h2 { font-size: clamp(30px, 4vw, 44px); line-height: 1.08; font-weight: 500; }
+.intro h2 em { font-style: italic; }
+.intro p { max-width: 60ch; color: var(--muted); font-size: 15px; margin: 12px 0 0; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+.group { display: grid; gap: 12px; padding-block: 16px; border-top: 1px solid var(--line); }
+.group:first-child { border-top: 0; padding-top: 0; }
+.group h3 { font-size: 18px; font-weight: 600; }
+.row { display: grid; grid-template-columns: 112px minmax(0, 1fr) 56px; gap: 12px; align-items: center; }
+.row label { font-weight: 500; }
+.row output { font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+.row output:empty { visibility: hidden; }
+.row .sw { width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-right: 7px; vertical-align: 0; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.hint { font-size: 12.5px; color: var(--muted); margin: -4px 0 0; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 5px 12px; font-size: 13px; }
+.chip:hover { border-color: var(--muted); }
+.toggles { display: grid; gap: 10px; }
+.tog { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 10px; align-items: start; }
+.tog input { margin-top: 3px; accent-color: var(--accent); width: 16px; height: 16px; }
+.tog span b { display: block; font-weight: 500; }
+.tog span small { color: var(--muted); font-size: 12.5px; }
+.preview-wrap { position: sticky; top: 16px; display: grid; gap: 12px; }
+.slide { background: var(--slide); border-radius: 10px; padding: 10px; }
+.slide canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; border-radius: 4px; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.biome-notes { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px 16px; font-size: 12.5px; }
+.biome-notes b { display: block; font-size: 13px; }
+.go { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.go .btn.primary { padding: 11px 20px; font-size: 15px; }
+.seed { display: inline-flex; gap: 6px; align-items: center; }
+.seed input { width: 92px; padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--r); background: var(--bg); font-family: var(--mono); }
+details.rules { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; }
+details.rules summary { cursor: pointer; font-family: var(--display); font-size: 18px; font-weight: 600; }
+.rules ol { padding-left: 20px; margin: 12px 0; display: grid; gap: 8px; max-width: 70ch; }
+.rules h4 { margin: 16px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.refs { display: grid; gap: 8px; font-size: 13px; max-width: 75ch; padding: 0; list-style: none; margin: 0; }
+.refs li b { font-weight: 600; }
+.refs a { color: var(--accent); }
+
+/* ---------- run ---------- */
+.run { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 18px; align-items: start; }
+.stage { display: grid; gap: 10px; min-width: 0; }
+.world { position: relative; background: var(--slide); border-radius: 10px; padding: 8px; }
+.world canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; border-radius: 4px; cursor: crosshair; }
+.overlay-msg { position: absolute; left: 18px; top: 16px; background: rgba(9,13,12,.82); color: #e9efe9; padding: 6px 10px; border-radius: 6px; font-size: 13px; pointer-events: none; }
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.toolbar .sep { width: 1px; align-self: stretch; background: var(--line); }
+.evts { display: flex; gap: 6px; flex-wrap: wrap; }
+.evts .btn { padding: 6px 10px; font-size: 13px; }
+.active-events { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); }
+.pill.hot { border-color: var(--warn); color: var(--warn); }
+.side { display: grid; gap: 14px; min-width: 0; }
+.charts2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; margin-top: 4px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; min-width: 0; }
+.card h3 { font-size: 17px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card h3 .label { font-family: var(--body); }
+.chart { width: 100%; height: 132px; display: block; }
+.chart.tall { height: 170px; }
+.keys { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 6px; }
+.keys i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; margin-right: 5px; vertical-align: 3px; }
+.splist { display: grid; gap: 2px; }
+.splist.scroll { max-height: 460px; overflow-y: auto; padding-right: 4px; align-content: start; }
+.spfilter { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.spfilter button { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 2px 9px; font-size: 12px; }
+.spfilter button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.sp .ct small { display: block; color: var(--muted); font-size: 11px; }
+.splist .empty { color: var(--muted); font-size: 13px; padding: 6px; }
+.sp { display: grid; grid-template-columns: 38px minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 6px; border-radius: 6px; border: 0; background: transparent; text-align: left; width: 100%; }
+.sp:hover { background: var(--sunk); }
+.sp canvas { width: 38px; height: 38px; background: var(--slide); border-radius: 5px; }
+.sp .nm { min-width: 0; }
+.sp .nm .binom { display: block; font-size: 15px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp .nm small { color: var(--muted); font-size: 12px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp .ct { font-family: var(--mono); font-size: 13px; text-align: right; }
+.role { display: inline-block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; font-weight: 600; padding: 1px 6px; border-radius: 4px; color: #fff; }
+.role.r0 { background: var(--plant); } .role.r1 { background: var(--grazer); } .role.r2 { background: var(--predator); } .role.r3 { background: var(--scavenger); } .role.r4 { background: var(--other); }
+:root[data-theme="dark"] .role, .role { color: #fff; }
+.feed { display: grid; gap: 8px; max-height: 260px; overflow-y: auto; font-size: 13px; padding-right: 4px; }
+.feed div { display: grid; grid-template-columns: 52px minmax(0,1fr); gap: 8px; }
+.feed .yr { font-family: var(--mono); color: var(--muted); font-size: 12px; padding-top: 1px; }
+.feed .k-ext { color: var(--bad); }
+.feed .k-new { color: var(--ink); }
+.inspect-empty { color: var(--muted); font-size: 13px; }
+.insp-head { display: grid; grid-template-columns: 76px minmax(0,1fr); gap: 12px; align-items: center; margin-bottom: 10px; }
+.insp-head canvas { width: 76px; height: 76px; background: var(--slide); border-radius: 8px; }
+.insp-head .binom { font-size: 19px; line-height: 1.15; display: block; }
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px 14px; }
+.stats > div { display: flex; flex-direction: column; min-width: 0; }
+.stats b { font-family: var(--mono); font-weight: 500; font-variant-numeric: tabular-nums; }
+.bar { height: 6px; background: var(--sunk); border-radius: 3px; overflow: hidden; margin-top: 3px; }
+.bar > i { display: block; height: 100%; background: var(--accent); }
+.diet { position: relative; height: 8px; border-radius: 4px; margin-top: 6px; background: linear-gradient(90deg, var(--plant), var(--scavenger), var(--predator)); }
+.diet i { position: absolute; top: -3px; width: 4px; height: 14px; background: var(--ink); border-radius: 2px; transform: translateX(-2px); }
+.diet-l { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 3px; }
+.cells { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.cells span { font-size: 12px; padding: 1px 6px; border-radius: 4px; background: var(--sunk); display: inline-flex; align-items: center; gap: 5px; }
+.cells span i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+.lineage { font-size: 13px; display: grid; gap: 3px; margin-top: 4px; }
+.lineage div { display: flex; gap: 6px; align-items: baseline; }
+.lineage .arrow { color: var(--muted); font-family: var(--mono); font-size: 11px; width: 14px; }
+
+/* ---------- summary ---------- */
+.sum-hero { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; align-items: end; padding-block: 8px 20px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+.sum-hero h2 { font-size: clamp(34px, 5vw, 58px); line-height: 1.02; font-weight: 500; }
+.sum-hero h2 em { font-style: italic; color: var(--accent); }
+.sum-hero p { color: var(--muted); font-size: 15px; margin: 10px 0 0; max-width: 56ch; }
+.figs { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; }
+.figs div { border-top: 2px solid var(--ink); padding-top: 6px; }
+.figs b { display: block; font-family: var(--mono); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.sum-grid { display: grid; grid-template-columns: repeat(12, minmax(0,1fr)); gap: 16px; }
+.span-7 { grid-column: span 7; } .span-5 { grid-column: span 5; } .span-6 { grid-column: span 6; } .span-12 { grid-column: span 12; } .span-4 { grid-column: span 4; } .span-8 { grid-column: span 8; }
+.champ { display: grid; grid-template-columns: 150px minmax(0,1fr); gap: 18px; align-items: start; }
+.champ canvas { width: 150px; height: 150px; background: var(--slide); border-radius: 10px; }
+.champ .binom { font-size: 30px; line-height: 1.05; display: block; }
+.champ p { margin: 8px 0 0; color: var(--muted); max-width: 52ch; }
+.web { display: grid; gap: 10px; }
+.web .lane { display: grid; grid-template-columns: 96px minmax(0,1fr) 72px; gap: 10px; align-items: center; font-size: 13px; }
+.web .track { position: relative; height: 14px; background: var(--sunk); border-radius: 3px; }
+.web .track i { position: absolute; top: 0; bottom: 0; border-radius: 3px; }
+.web .yr { font-family: var(--mono); font-size: 12px; text-align: right; color: var(--muted); }
+.fame { display: grid; gap: 6px; }
+.fame .sp { grid-template-columns: 22px 38px minmax(0,1fr) auto; }
+.fame .rk { font-family: var(--mono); color: var(--muted); }
+.innov { display: grid; gap: 8px; font-size: 13.5px; }
+.innov div { display: grid; grid-template-columns: 60px minmax(0,1fr); gap: 10px; }
+.innov .yr { font-family: var(--mono); color: var(--muted); font-size: 12px; padding-top: 2px; }
+.deaths { display: grid; gap: 8px; font-size: 13px; }
+.deaths .dl { display: grid; grid-template-columns: 110px minmax(0,1fr) 64px; gap: 10px; align-items: center; }
+.deaths .dl .bar { margin: 0; height: 8px; }
+.deaths .dl .bar i { background: var(--muted); }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+
+@media (max-width: 1080px) {
+  .run { grid-template-columns: minmax(0, 1fr); }
+  .side { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (max-width: 860px) {
+  .setup { grid-template-columns: minmax(0, 1fr); }
+  .preview-wrap { position: static; order: -1; }
+  .sum-hero { grid-template-columns: minmax(0, 1fr); }
+  .sum-grid > * { grid-column: span 12; }
+}
+@media (max-width: 640px) {
+  .side, .charts2 { grid-template-columns: minmax(0,1fr); }
+  .row { grid-template-columns: 92px minmax(0,1fr) 48px; }
+  .champ { grid-template-columns: 96px minmax(0,1fr); }
+  .champ canvas { width: 96px; height: 96px; }
+  .figs { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .biome-notes { grid-template-columns: minmax(0,1fr); }
+  .hud { gap: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><h1>Primordia</h1><span>an evolution sandbox</span></div>
+    <div class="hud" id="hud" hidden>
+      <div><span class="label">Time</span><b id="h-time">Year 0.00</b></div>
+      <div><span class="label">Season</span><b id="h-season">Spring</b></div>
+      <div><span class="label">Organisms</span><b id="h-pop">0</b></div>
+      <div><span class="label">Species alive</span><b id="h-sp">0</b></div>
+      <div><span class="label">Generations</span><b id="h-gen">0</b></div>
+    </div>
+  </header>
+
+  <!-- ===================== SETUP ===================== -->
+  <section id="setup">
+    <div class="setup">
+      <div style="display:grid; gap:18px; min-width:0">
+        <div class="intro">
+          <h2>Build a world, release life, and see <em>how long it lasts.</em></h2>
+          <p>Nothing here is told what to become. Organisms are bodies of cells that must pay for themselves in energy. They eat, move, breed with small copying errors, and die. Plants, grazers, hunters and scavengers all start simple. Whatever survives is what evolution found. Your job is the stage: how big, how harsh, and who arrives.</p>
+        </div>
+        <div class="panel">
+          <div class="group">
+            <h3>Start from a preset</h3>
+            <div class="chips" id="presets"></div>
+          </div>
+          <div class="group">
+            <h3>World</h3>
+            <div class="row"><label>Size</label><div class="seg" id="size"><button data-v="small">Small</button><button data-v="medium">Medium</button><button data-v="large">Large</button></div><span></span></div>
+            <p class="hint">Bigger worlds hold more separate pockets of life, so a local crash is less likely to end everything.</p>
+            <div class="row"><label for="b0"><i class="sw" style="background:#3a5a2f"></i>Grassland</label><input type="range" id="b0" min="0" max="5" step="1"><output id="b0o"></output></div>
+            <div class="row"><label for="b1"><i class="sw" style="background:#1f4a32"></i>Forest</label><input type="range" id="b1" min="0" max="5" step="1"><output id="b1o"></output></div>
+            <div class="row"><label for="b2"><i class="sw" style="background:#7a6438"></i>Desert</label><input type="range" id="b2" min="0" max="5" step="1"><output id="b2o"></output></div>
+            <div class="row"><label for="b3"><i class="sw" style="background:#5d7286"></i>Tundra</label><input type="range" id="b3" min="0" max="5" step="1"><output id="b3o"></output></div>
+            <div class="row"><label for="b4"><i class="sw" style="background:#3e6256"></i>Bog</label><input type="range" id="b4" min="0" max="5" step="1"><output id="b4o"></output></div>
+          </div>
+          <div class="group">
+            <h3>Founders</h3>
+            <div class="row"><label for="f-plants"><i class="sw" style="background:var(--plant)"></i>Plants</label><input type="range" id="f-plants" min="50" max="1000" step="10"><output id="f-plantso"></output></div>
+            <div class="row"><label for="f-grazers"><i class="sw" style="background:var(--grazer)"></i>Grazers</label><input type="range" id="f-grazers" min="0" max="300" step="5"><output id="f-grazerso"></output></div>
+            <div class="row"><label for="f-predators"><i class="sw" style="background:var(--predator)"></i>Predators</label><input type="range" id="f-predators" min="0" max="80" step="1"><output id="f-predatorso"></output></div>
+            <div class="row"><label for="f-scavengers"><i class="sw" style="background:var(--scavenger)"></i>Scavengers</label><input type="range" id="f-scavengers" min="0" max="120" step="1"><output id="f-scavengerso"></output></div>
+            <p class="hint">Every founder of a group shares one simple body. Grazers have a mouth, a mover and an eye; predators add a killer cell; scavengers digest dead matter.</p>
+          </div>
+          <div class="group">
+            <h3>Climate and evolution</h3>
+            <div class="row"><label for="sun">Sunlight</label><input type="range" id="sun" min="0.5" max="1.5" step="0.05"><output id="suno"></output></div>
+            <div class="row"><label for="mut">Mutation</label><input type="range" id="mut" min="0" max="3" step="0.25"><output id="muto"></output></div>
+            <div class="toggles">
+              <label class="tog"><input type="checkbox" id="t-seasons"><span><b>Seasons</b><small>Light swells in summer and fades in winter, with frost at the bottom of the year.</small></span></label>
+              <label class="tog"><input type="checkbox" id="t-events"><span><b>Random disasters</b><small>Droughts, ice ages, blooms, meteors and plagues strike every few years.</small></span></label>
+              <label class="tog"><input type="checkbox" id="t-barriers"><span><b>Mountain ranges</b><small>Ridges between biomes with narrow passes. Isolated populations drift apart into new species.</small></span></label>
+              <label class="tog"><input type="checkbox" id="t-staged"><span><b>Succession</b><small>Plants settle first, grazers arrive once there is enough to eat, then scavengers and predators. Turn off to release everyone at once.</small></span></label>
+            </div>
+          </div>
+          <div class="group">
+            <div class="go">
+              <button class="btn primary" id="start">Release life</button>
+              <span class="seed"><label for="seed" class="label">World seed</label><input id="seed" inputmode="numeric"><button class="btn ghost" id="reseed" title="New random seed">New seed</button></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="preview-wrap">
+        <div class="slide"><canvas id="preview"></canvas></div>
+        <div class="biome-notes" id="biome-notes"></div>
+        <details class="rules">
+          <summary>How the world works</summary>
+          <ol>
+            <li><b>Bodies are made of cells.</b> Producers turn light into energy. Mouths eat. Movers move. Killers wound other bodies. Armour blocks killers and keeps out the cold. Eyes see in one direction.</li>
+            <li><b>Everything costs energy.</b> Each cell has upkeep, so a part only spreads if it pays for itself. Upkeep scales like real metabolism: a body twice the size costs less than twice as much.</li>
+            <li><b>Breeding copies the body with mistakes.</b> A child can gain a random cell, lose one, duplicate one, or change one. Diet, how much to save before breeding, how to react to what the eyes see, and the mutation rate itself all drift too.</li>
+            <li><b>Diet is a single sliding gene</b> from living plants, through dead matter, to meat. Specialists digest their food best, but a little omnivory costs little, so lineages can drift from one way of life to another.</li>
+            <li><b>Killer cells cut both ways.</b> Prey that carry them strike back when attacked, so a killer cell can pay for itself as defence long before a lineage eats meat.</li>
+            <li><b>Grazing wears plants down.</b> A lightly grazed plant regrows from its rootstock, but heavy, sustained grazing kills it. Dead plants leave seeds in the soil that sprout once the ground is bare again, so a crash is followed by regrowth.</li>
+            <li><b>Plants compete for light and fight back.</b> Bigger plants shade smaller neighbours, and armour cells make a plant harder to eat. Both cost energy, so small, fast-spreading plants and big or armoured ones each win in different places and times.</li>
+            <li><b>Doing everything costs extra.</b> A body with both producer cells and a mouth runs two systems, so it is 20% worse at each than a specialist.</li>
+            <li><b>Crowded species catch more disease.</b> Once a species packs more than about 2% of the ground, extra deaths set in, so no single strategy can take over for good. Rare species, like most predators, escape it.</li>
+            <li><b>Plants need soil as well as light.</b> Bogs are bright but starved of nutrients. Meat is rich in them, so a plant that catches animals can grow there.</li>
+            <li><b>Nobody is scored.</b> There is no fitness function. The species list, the names and the roles are labels added afterwards for you to read.</li>
+          </ol>
+          <h4>Where the rules come from</h4>
+          <ul class="refs">
+            <li><b>Metabolic scaling.</b> Upkeep grows with body size to the ¾ power, and lifespan with the ¼ power. <a href="https://doi.org/10.1890/03-9000" target="_blank" rel="noopener">Brown et al. 2004, Toward a metabolic theory of ecology</a></li>
+            <li><b>Energy is lost at every step up the food chain,</b> which is why predators are always rarer than their prey. <a href="https://doi.org/10.2307/1930126" target="_blank" rel="noopener">Lindeman 1942, The trophic-dynamic aspect of ecology</a></li>
+            <li><b>Space, refuges and arrival order keep predators and prey together.</b> Forests hide prey and slow hunters; succession establishes prey before predators arrive. <a href="https://en.wikipedia.org/wiki/Huffaker%27s_mite_experiment" target="_blank" rel="noopener">Huffaker 1958, mite and orange experiments</a></li>
+            <li><b>Crowded hunters get in each other's way,</b> which damps boom and bust cycles. <a href="https://www.aimspress.com/article/10.3934/mbe.2008.5.567" target="_blank" rel="noopener">van Voorn et al. 2008, Beddington–DeAngelis predator interference</a></li>
+            <li><b>More food can mean less stability.</b> Turning sunlight up can make cycles swing wider, not calmer. <a href="https://en.wikipedia.org/wiki/Paradox_of_enrichment" target="_blank" rel="noopener">Rosenzweig 1971, the paradox of enrichment</a></li>
+            <li><b>Carnivorous plants pay off in sunny, nutrient-poor places,</b> where light is cheap and nitrogen is scarce. That is why the bog exists. <a href="https://givnishlab.botany.wisc.edu/Welcome_files/Givnish%20et%20al.%202018%20carnivory.pdf" target="_blank" rel="noopener">Givnish et al., the cost-benefit model of carnivory (1984, revisited 2018)</a></li>
+            <li><b>Mixotrophs pay for flexibility.</b> Organisms that both photosynthesise and eat must maintain two sets of machinery, and that cost is what stops them beating specialists everywhere. <a href="https://eprints.soton.ac.uk/417050/1/Ward_2011.pdf" target="_blank" rel="noopener">Ward et al. 2011</a>; they still win where resources are scarce, <a href="https://pure.uhi.ac.uk/en/publications/mixotrophs-combine-resource-use-to-outcompete-specialists-implica/" target="_blank" rel="noopener">Tittel et al. 2003</a></li>
+            <li><b>Animals leave a patch when it stops paying.</b> They stop to eat only while intake beats their running costs. Charnov 1976, the marginal value theorem.</li>
+            <li><b>Complex parts are built from simpler steps,</b> so new cells are added one at a time and must each earn their keep. <a href="https://lenski.mmg.msu.edu/papers/nature2003/index.html" target="_blank" rel="noopener">Lenski et al. 2003, The evolutionary origin of complex features</a></li>
+            <li><b>Species are drawn by genetic distance</b> from the lineage's founder, as in NEAT. <a href="https://sharpneat.sourceforge.io/research/speciation-canonical-neat.html" target="_blank" rel="noopener">Stanley &amp; Miikkulainen 2002</a></li>
+            <li><b>Ongoing novelty needs a world that keeps changing,</b> mostly because the other organisms keep evolving. That is why the food web, seasons and disasters are here. <a href="https://arxiv.org/abs/1507.07403" target="_blank" rel="noopener">Taylor 2015, Requirements for open-ended evolution</a></li>
+          </ul>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== RUN ===================== -->
+  <section id="run" hidden>
+    <div class="run">
+      <div class="stage">
+        <div class="toolbar">
+          <div class="seg" id="speed" aria-label="Speed">
+            <button data-s="0" title="Pause (space)">Pause</button><button data-s="1">1×</button><button data-s="2">4×</button><button data-s="3">16×</button><button data-s="4">Max</button>
+          </div>
+          <div class="seg" id="colormode" aria-label="Colour by">
+            <button data-m="cells">Body parts</button><button data-m="species">Species</button>
+          </div>
+          <div class="active-events" id="active-events"></div>
+          <span style="margin-left:auto"></span>
+          <button class="btn" id="end">End and summarize</button>
+        </div>
+        <div class="world"><canvas id="world"></canvas><div class="overlay-msg" id="msg" hidden></div></div>
+        <div class="toolbar">
+          <span class="label">Intervene</span>
+          <div class="evts">
+            <button class="btn" data-ev="drought">Drought</button>
+            <button class="btn" data-ev="iceage">Ice age</button>
+            <button class="btn" data-ev="bloom">Nutrient bloom</button>
+            <button class="btn" data-ev="meteor">Meteor</button>
+            <button class="btn" data-ev="plague">Plague</button>
+          </div>
+          <span class="sep"></span>
+          <div class="legend" id="cell-legend"></div>
+        </div>
+        <div class="charts2">
+        <div class="card">
+          <h3>Population <span class="label">log scale</span></h3>
+          <canvas class="chart tall" id="c-pop"></canvas>
+          <div class="keys"><span><i style="background:var(--plant)"></i>Plants</span><span><i style="background:var(--grazer)"></i>Grazers</span><span><i style="background:var(--predator)"></i>Predators</span><span><i style="background:var(--scavenger)"></i>Scavengers</span></div>
+        </div>
+        <div class="card">
+          <h3>Complexity <span class="label">cells per animal</span></h3>
+          <canvas class="chart tall" id="c-cx"></canvas>
+          <div class="keys"><span><i style="background:var(--accent)"></i>Average animal</span><span><i style="background:var(--muted)"></i>Largest organism</span></div>
+        </div>
+        </div>
+      </div>
+      <aside class="side">
+        <div class="card" id="insp-card">
+          <h3>Specimen <span class="label">click any organism</span></h3>
+          <div id="inspect"><p class="inspect-empty">Click an organism on the slide, or a species below, to see its body, its genes and where its lineage came from.</p></div>
+        </div>
+        <div class="card">
+          <h3>Species <span class="label" id="sp-count"></span></h3>
+          <div class="spfilter" id="spfilter" role="group" aria-label="Show species">
+            <button data-r="all" aria-pressed="true">All</button><button data-r="0">Plants</button><button data-r="1">Grazers</button><button data-r="2">Predators</button><button data-r="3">Scavengers</button><button data-r="4">Other</button>
+          </div>
+          <div class="splist scroll" id="splist"></div>
+        </div>
+        <div class="card">
+          <h3>Field notes</h3>
+          <div class="feed" id="feed"></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ===================== SUMMARY ===================== -->
+  <section id="summary" hidden></section>
+</div>
+
+<script>
+/* Evolution sandbox — simulation core (DOM-free; runs in browser and Node).
+ * Organisms are bodies of typed cells on a grid. Nothing in here computes fitness:
+ * there are only energy, space, eating, moving, reproducing (with mutation) and dying.
+ */
+(function (global) {
+'use strict';
+
+const T = { NONE: 0, PROD: 1, MOUTH: 2, MOVER: 3, KILLER: 4, ARMOR: 5, EYE: 6 };
+const TYPE_NAMES = ['', 'Producer', 'Mouth', 'Mover', 'Killer', 'Armor', 'Eye'];
+// Per-cell maintenance weights (energy/tick before size scaling).
+const UPKEEP = [0, 0.07, 0.09, 0.12, 0.10, 0.10, 0.08];
+const ROLE = { PLANT: 0, GRAZER: 1, PREDATOR: 2, SCAVENGER: 3, OTHER: 4 };
+const ROLE_NAMES = ['Plants', 'Grazers', 'Predators', 'Scavengers', 'Other'];
+
+// Internal constants. Tuned headlessly so users only touch coarse knobs.
+const K = {
+  CB: 10,            // energy to build one cell
+  LIGHT: 0.6,        // base light energy per producer cell per tick
+  LITTER: 0.25,      // share of plant production shed as litter (most NPP becomes detritus, not grazing)
+  PCHUNK: 4,         // light competition is resolved in 4x4 patches
+  PCAP: 4,           // producer cells per patch at which light is fully shaded
+  CHILD_FRAC: 0.6,   // fraction of build investment that reaches the child (rest is lost: Lindeman)
+  MAXE: 4,           // max stored energy = MAXE * n * CB
+  LIFE0: 800,        // base lifespan (ticks), scaled by n^0.25 (metabolic theory)
+  MATURE: 25,
+  N_FROM_MEAT: 0.1,  // nutrients a body absorbs per unit of meat eaten (lets plants in poor soil profit from carnivory)
+  NSTORE_MAX: 2.5,
+  NSTORE_DECAY: 0.999,
+  SELF_SHADE: 0.4,   // how much a plant's own producer cells shade each other
+  OVERGRAZE: 25,     // energy grazed from a plant (decaying) beyond which grazing can kill it
+  STRESS_DECAY: 0.995,
+  ARMOR_DEFENSE: 0.7, // each armour cell on a plant halves, thirds... what a grazer gets per bite
+  SEED_P: 0.5,       // chance a dying plant leaves a dormant seed in the soil
+  SEED_LIFE: 8000,   // days a seed stays viable
+  SEED_E: 6,         // energy a sprouting seed starts with
+  DISEASE: 0.0015,   // extra death chance per day for a very crowded species...
+  DISEASE_FREE: 0.02, // ...starting once it occupies 2% of tiles, full at 6%
+  MIXO_COST: 0.2,    // a body with both producer cells and a mouth is 20% worse at each (Ward et al. 2011)
+  RETALIATE: 0.3,    // chance per hit that a victim's killer cells strike back
+  ANIMAL_BASE: 0,    // fixed metabolic cost of being an animal, on top of per-cell upkeep
+  MOVE: 0.012,       // energy per step per unit body mass
+  GRAZE: 0.9,        // energy drained per tick by a mouth grazing a producer cell
+  GRAZE_FLOOR: 1,    // grazing can't take a plant below this (rootstock survives)
+  BITE: 4,           // max food eaten from a pellet per mouth per tick
+  HP: 2,             // hit points per cell
+  INTERF: 2.0,       // predator interference (Beddington–DeAngelis style)
+  SATIATE: 0.6,      // predators stop attacking above this fraction of max energy
+  DECAY_PLANT: 0.002,
+  DECAY_MEAT: 0.005,
+  FERT_GAIN: 0.04,   // fraction of decayed matter returned as soil fertility
+  FERT_DECAY: 0.9985,
+  COLD: 0.05,        // extra upkeep per cell per unit of cold
+  MAX_CELLS: 16,
+  EYE_RANGE: 11,
+  GUD: 3,            // keep eating (stop moving) only while intake beats 3x upkeep
+  PLANT_READY: 0.08, // grazers arrive once plants cover this share of tiles
+  PREY_READY: 0.02,  // predators arrive once grazers reach this share of tiles
+  DEAD_READY: 0.25,  // scavengers arrive once dead matter averages this much energy per tile
+  STAGE_MIN: 400,
+  STAGE_DEADLINE: 2500,
+  KILL_EAT: 0.8,     // share of a kill the killer can eat at once; the rest is carrion   // predators/scavengers arrive after prey establish (as Huffaker did)
+  SPECIES_THRESH: 4.5,
+  YEAR: 2000,        // ticks per year (one seasonal cycle)
+};
+
+const BIOMES = [
+  { key: 'grass',  name: 'Grassland', light: 1.0,  upkeep: 1.0,  vis: 1.0,  move: 1.0, cold: 0, cover: 0, soil: 1.0,
+    blurb: 'Plenty of light, open ground. The baseline.' },
+  { key: 'forest', name: 'Forest',    light: 1.15, upkeep: 1.0,  vis: 0.45, move: 1.7, cold: 0, cover: 0.5, soil: 1.3,
+    blurb: 'Rich light but dense: eyes see less and moving is costly. A refuge for prey.' },
+  { key: 'desert', name: 'Desert',    light: 0.5,  upkeep: 1.25, vis: 1.3,  move: 1.0, cold: 0, cover: 0, soil: 0.6,
+    blurb: 'Scarce light and heat stress. Rewards efficient, small bodies.' },
+  { key: 'tundra', name: 'Tundra',    light: 0.6,  upkeep: 1.0,  vis: 1.0,  move: 1.2, cold: 1.0, cover: 0.15, soil: 0.5,
+    blurb: 'Cold drains energy per cell. Armour doubles as insulation.' },
+  { key: 'bog',    name: 'Bog',       light: 1.25, upkeep: 1.0,  vis: 0.8,  move: 1.5, cold: 0, cover: 0.25, soil: 0.06,
+    blurb: 'Bright and waterlogged but starved of nutrients. Plants barely grow unless they find another source.' },
+];
+const WALL = 255;
+
+const SIZES = { small: [120, 76], medium: [160, 100], large: [220, 136] };
+
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const DX = [1, 0, -1, 0], DY = [0, 1, 0, -1];
+const NX = [1, 0, -1, 0, 1, 1, -1, -1], NY = [0, 1, 0, -1, 1, -1, 1, -1];
+
+function rotX(x, y, r) { return r === 0 ? x : r === 1 ? -y : r === 2 ? -x : y; }
+function rotY(x, y, r) { return r === 0 ? y : r === 1 ? x : r === 2 ? -y : -x; }
+
+// ---------- genome helpers ----------
+function cloneGenome(g) {
+  return { cells: g.cells.map(c => ({ x: c.x, y: c.y, t: c.t, d: c.d })), diet: g.diet,
+           react: g.react.slice(), mut: g.mut, repro: g.repro };
+}
+function countTypes(g) {
+  const c = [0, 0, 0, 0, 0, 0, 0];
+  for (const cell of g.cells) c[cell.t]++;
+  return c;
+}
+function classify(cnt, diet) {
+  const hasP = cnt[T.PROD] > 0, hasM = cnt[T.MOUTH] > 0, hasK = cnt[T.KILLER] > 0;
+  if (hasP && (!hasM || cnt[T.PROD] > cnt[T.MOUTH] * 2)) return ROLE.PLANT;
+  if (hasM && hasK && diet >= 0.6) return ROLE.PREDATOR;
+  if (hasM && diet < 0.33) return ROLE.GRAZER;
+  if (hasM && diet < 0.72) return ROLE.SCAVENGER;
+  return ROLE.OTHER;
+}
+// Diet is one continuous gene: 0 = eats living plants, 0.5 = eats dead matter, 1 = eats what it kills.
+// Being good at one end costs efficiency at the other (a specialist/generalist trade-off).
+function dietEff(d, m = 1) {
+  const live = Math.max(0.03, 0.75 * (1 - 1.3 * Math.pow(d, 1.5))); // flat near 0: a little omnivory costs little
+  const dead = Math.max(0.03, 0.85 * (1 - 3 * Math.abs(d - 0.5)));
+  const meat = Math.max(0.03, 0.9 * (d - 0.15) / 0.85); // rises early, so omnivores get something from a kill
+  return { effLive: live * m, effMeat: meat * m, effDetritus: Math.max(dead, 0.1 * live) * m, effCarrion: Math.max(dead, 0.6 * meat) * m };
+}
+function connected(cells) {
+  if (cells.length <= 1) return true;
+  const key = (x, y) => x * 1000 + y;
+  const set = new Set(cells.map(c => key(c.x, c.y)));
+  const seen = new Set([key(cells[0].x, cells[0].y)]);
+  const st = [cells[0]];
+  while (st.length) {
+    const c = st.pop();
+    for (let d = 0; d < 4; d++) {
+      const k = key(c.x + DX[d], c.y + DY[d]);
+      if (set.has(k) && !seen.has(k)) { seen.add(k); st.push({ x: c.x + DX[d], y: c.y + DY[d] }); }
+    }
+  }
+  return seen.size === cells.length;
+}
+function genomeDistance(a, b) {
+  const ca = countTypes(a), cb = countTypes(b);
+  let d = 0;
+  for (let t = 1; t < 7; t++) d += Math.abs(ca[t] - cb[t]);
+  const m = new Map();
+  for (const c of a.cells) m.set(c.x * 1000 + c.y, c.t);
+  let mis = 0;
+  for (const c of b.cells) { const t = m.get(c.x * 1000 + c.y); if (t !== c.t) mis++; m.delete(c.x * 1000 + c.y); }
+  mis += m.size;
+  d += 0.3 * mis;
+  d += 2.5 * Math.abs(a.diet - b.diet) + 1.5 * Math.abs(a.repro - b.repro);
+  for (let i = 0; i < 4; i++) d += 0.35 * Math.abs(a.react[i] - b.react[i]);
+  return d;
+}
+
+// ---------- naming ----------
+const SYL = ['ve', 'lo', 'ra', 'thi', 'mo', 'ka', 'zu', 'phy', 'dra', 'ne', 'xo', 'qui', 'bo', 'sa', 'ly',
+  'gor', 'ten', 'mi', 'cor', 'pha', 'sil', 'tar', 'ul', 'ven', 'ar', 'cli', 'do', 'em', 'fi', 'ga'];
+const GEN_END = ['ia', 'us', 'on', 'ax', 'ella', 'ops', 'ix', 'ara', 'odon', 'ites'];
+function makeGenus(rng) {
+  let s = SYL[Math.floor(rng() * SYL.length)] + SYL[Math.floor(rng() * SYL.length)];
+  if (rng() < 0.4) s += SYL[Math.floor(rng() * SYL.length)];
+  s += GEN_END[Math.floor(rng() * GEN_END.length)];
+  return s[0].toUpperCase() + s.slice(1);
+}
+function pick(rng, arr) { return arr[Math.floor(rng() * arr.length)]; }
+function makeEpithet(rng, cnt, n, role) {
+  const opts = [];
+  if (role === 0 && cnt[T.KILLER] && cnt[T.MOUTH]) return pick(rng, ['carnivorus', 'muscipula', 'insectivora', 'dentata']);
+  if (cnt[T.KILLER] >= 2) opts.push('spinosus', 'ferox');
+  if (cnt[T.ARMOR] >= 2) opts.push('loricatus', 'scutatus');
+  if (cnt[T.EYE] >= 2) opts.push('oculatus', 'argus');
+  if (cnt[T.MOVER] >= 2) opts.push('velox', 'cursor');
+  if (n >= 8) opts.push('magnus', 'gigas');
+  if (n === 1) opts.push('minimus', 'simplex');
+  if (!opts.length) {
+    opts.push(...[['viridis', 'solaris', 'frondosus'], ['pascens', 'herbivorus', 'mitis'],
+      ['rapax', 'venator', 'lupinus'], ['necrophagus', 'vorax', 'lugubris'], ['mirabilis', 'ambiguus', 'novus']][role]);
+  }
+  return pick(rng, opts);
+}
+function makeCommonName(rng, cnt, n, role) {
+  if (role === ROLE.PLANT && cnt[T.ARMOR] && !cnt[T.MOUTH]) return pick(rng, ['Thorny', 'Woody', 'Barbed', 'Tough']) + ' ' + pick(rng, ['bramble', 'thornbush', 'briar', 'cactus', 'holly']);
+  if (role === ROLE.PLANT && cnt[T.KILLER] && cnt[T.MOUTH]) return pick(rng, ['Toothed', 'Biting', 'Sticky', 'Hungry', 'Snapping']) + ' ' + pick(rng, ['flytrap', 'sundew', 'snare', 'pitcher', 'bladderwort']);
+  const nouns = [['moss', 'fern', 'reed', 'bloom', 'lichen'], ['grazer', 'drifter', 'nibbler', 'browser'],
+    ['stalker', 'hunter', 'fang', 'prowler'], ['picker', 'gleaner', 'crawler', 'sweeper'], ['oddity', 'wanderer', 'chimera']][role];
+  const adj = [];
+  if (cnt[T.ARMOR] >= 2) adj.push('Armoured', 'Shelled');
+  if (cnt[T.KILLER] >= 2) adj.push('Spiny', 'Thorned');
+  if (cnt[T.EYE] >= 2) adj.push('Many-eyed', 'Watchful');
+  if (cnt[T.MOVER] >= 2) adj.push('Swift', 'Darting');
+  if (n >= 8) adj.push('Giant', 'Great');
+  if (n <= 2) adj.push('Tiny', 'Lesser');
+  if (!adj.length) adj.push('Common', 'Plain', 'Dusky', 'Pale', 'Ruddy', 'Speckled');
+  const a = pick(rng, adj), b = pick(rng, nouns);
+  return a + ' ' + b;
+}
+
+// ---------- seed designs ----------
+function seedGenome(kind) {
+  const C = (x, y, t, d = 0) => ({ x, y, t, d });
+  switch (kind) {
+    case 'plant': return { cells: [C(0, 0, T.PROD)], diet: 0.0, react: [0, 0, 0, 0], mut: 0.12, repro: 0.1 };
+    case 'grazer': return { cells: [C(0, 0, T.MOUTH), C(1, 0, T.MOVER), C(-1, 0, T.EYE, 2)],
+      diet: 0.1, react: [0.8, 0.9, -1, 0], mut: 0.12, repro: 0.3 };
+    case 'predator': return { cells: [C(0, 0, T.MOUTH), C(-1, 0, T.KILLER), C(1, 0, T.MOVER), C(0, -1, T.EYE, 2)],
+      diet: 0.9, react: [0.5, 0, -0.2, 1], mut: 0.12, repro: 0.3 };
+    case 'scavenger': return { cells: [C(0, 0, T.MOUTH), C(1, 0, T.MOVER), C(-1, 0, T.EYE, 2)],
+      diet: 0.5, react: [1, -0.1, -1, -0.2], mut: 0.12, repro: 0.12 };
+  }
+}
+
+// =====================================================================
+class World {
+  constructor(cfg) {
+    this.cfg = Object.assign({
+      seed: 12345, size: 'medium', biomes: [3, 2, 1, 1, 1], plants: 300, grazers: 60, predators: 12,
+      scavengers: 15, sunlight: 1.0, mutation: 1.0, seasons: true, randomEvents: true, barriers: false, staged: true,
+    }, cfg || {});
+    const [W, H] = SIZES[this.cfg.size] || SIZES.medium;
+    this.W = W; this.H = H;
+    this.rng = mulberry32(this.cfg.seed >>> 0);
+    const N = W * H;
+    this.occ = new Int32Array(N);      // slot+1 of occupying organism
+    this.cellT = new Uint8Array(N);    // cell type on tile
+    this.food = new Float32Array(N);
+    this.foodK = new Uint8Array(N);    // 1 plant matter, 2 meat
+    this.fert = new Float32Array(N);
+    this.terrain = new Uint8Array(N);
+    this.seeds = new Array(N).fill(null); // dormant seed bank: { g, sp, gen, t }
+    this.seedCount = 0;
+    this.orgs = [];
+    this.free = [];
+    this.nextId = 1;
+    this.tick = 0;
+    this.species = [];
+    this.speciesById = new Map();
+    this.events = [];       // active events
+    this.eventLog = [];
+    this.innovations = [];
+    this.history = [];
+    this.roleExtinct = [null, null, null, null, null];
+    this.roleSeen = [false, false, false, false, false];
+    this.maxGen = 0;
+    this.peakPop = 0;
+    this.biggest = null;
+    this.ended = null;
+    this.noConsumerSince = -1;
+    this.totalBirths = 0;
+    this.deaths = { starvation: 0, predation: 0, grazed: 0, age: 0, cold: 0, disease: 0, catastrophe: 0 };
+    this.chunk = 8;
+    this.cw = Math.ceil(W / this.chunk); this.ch = Math.ceil(H / this.chunk);
+    this.predDens = new Uint16Array(this.cw * this.ch);
+    this.pw = Math.ceil(W / K.PCHUNK); this.ph = Math.ceil(H / K.PCHUNK);
+    this.prodDens = new Uint16Array(this.pw * this.ph);
+    this.heightDens = new Float32Array(this.pw * this.ph);
+    this.buildTerrain();
+    this.populate();
+    this.sample();
+  }
+
+  // ---------------- terrain ----------------
+  buildTerrain() {
+    const { W, H } = this;
+    const NB = BIOMES.length;
+    const w = BIOMES.map((_, i) => Math.max(0, this.cfg.biomes[i] || 0));
+    const tot = w.reduce((a, b) => a + b, 0) || 1;
+    const bounds = []; let acc = 0;
+    for (let i = 0; i < NB; i++) { acc += w[i] / tot; bounds.push(acc * W); }
+    const ph = this.rng() * 10;
+    for (let y = 0; y < H; y++) {
+      const wob = Math.sin(y * 0.13 + ph) * 2.5 + Math.sin(y * 0.041 + ph * 2) * 3;
+      for (let x = 0; x < W; x++) {
+        let b = NB - 1;
+        for (let i = 0; i < NB; i++) if (x < bounds[i] + (i < NB - 1 ? wob : 0)) { b = i; break; }
+        if (w[b] === 0) { // biome slider at zero: fall back to nearest non-zero
+          for (let k = 0; k < NB; k++) if (w[k] > 0) { b = k; break; }
+        }
+        this.terrain[y * W + x] = b;
+      }
+    }
+    if (this.cfg.barriers) {
+      for (let i = 0; i < NB - 1; i++) {
+        if (w[i] === 0 || bounds[i] >= W - 1) continue;
+        for (let y = 0; y < H; y++) {
+          const wob = Math.sin(y * 0.13 + ph) * 2.5 + Math.sin(y * 0.041 + ph * 2) * 3;
+          const x0 = Math.round(bounds[i] + wob);
+          const gap = (y % 34) < 4; // mountain passes
+          if (gap) continue;
+          for (let dx = 0; dx < 2; dx++) {
+            const x = x0 + dx;
+            if (x > 0 && x < W - 1) this.terrain[y * W + x] = WALL;
+          }
+        }
+      }
+    }
+  }
+  biomeAt(idx) { const t = this.terrain[idx]; return t === WALL ? null : BIOMES[t]; }
+
+  // ---------------- populate ----------------
+  // Ecological succession: producers establish first, then grazers; scavengers arrive once there is
+  // dead matter to eat and predators once there is prey. (Huffaker 1958 likewise had to establish
+  // prey before adding predators to get any persistence.)
+  populate() {
+    const c = this.cfg;
+    this.release([['plant', c.plants]]);
+    this.pending = [];
+    if (!c.staged) { this.release([['grazer', c.grazers], ['predator', c.predators], ['scavenger', c.scavengers]]); return; }
+    if (c.grazers > 0) this.pending.push({ kind: 'grazer', num: c.grazers, label: 'Grazers arrive', after: null,
+      ready: w => w.last.roles[ROLE.PLANT] >= w.W * w.H * K.PLANT_READY });
+    if (c.scavengers > 0) this.pending.push({ kind: 'scavenger', num: c.scavengers, label: 'Scavengers arrive', after: 'grazer',
+      ready: w => w.deadMatter >= w.W * w.H * K.DEAD_READY });
+    if (c.predators > 0) this.pending.push({ kind: 'predator', num: c.predators, label: 'Predators arrive', after: 'grazer',
+      ready: w => w.last.roles[ROLE.GRAZER] >= w.W * w.H * K.PREY_READY });
+  }
+  get stage() { return this.pending && this.pending.length ? 0 : 2; }
+  advanceSuccession() {
+    if (!this.pending.length || this.tick % 20 !== 0 || !this.last) return;
+    const done = this.arrived || (this.arrived = {});
+    for (const p of this.pending.slice()) {
+      if (p.after && done[p.after] == null) continue;
+      const since = this.tick - (p.after ? done[p.after] : 0);
+      const minWait = p.after ? K.STAGE_MIN : 0;
+      if (since >= minWait && (p.ready(this) || since >= K.STAGE_DEADLINE)) {
+        this.release([[p.kind, p.num]]);
+        done[p.kind] = this.tick;
+        this.pending.splice(this.pending.indexOf(p), 1);
+        this.eventLog.push({ tick: this.tick, type: 'arrival', name: p.label });
+      }
+    }
+  }
+  release(kinds) {
+    for (const [kind, num] of kinds) {
+      if (num <= 0) continue;
+      const g = seedGenome(kind);
+      g.mut *= this.cfg.mutation;
+      const sp = this.newSpecies(g, null, null);
+      let placed = 0, tries = 0;
+      while (placed < num && tries < num * 40) {
+        tries++;
+        const x = 2 + Math.floor(this.rng() * (this.W - 4)), y = 2 + Math.floor(this.rng() * (this.H - 4));
+        const rot = Math.floor(this.rng() * 4);
+        const gg = cloneGenome(g);
+        if (this.canPlace(gg.cells, x, y, rot, -1, true)) {
+          const e = gg.cells.length * K.CB * (kind === 'plant' ? 1.0 : 3.0);
+          const o = this.spawn(gg, x, y, rot, e, sp, 0);
+          o.age = Math.floor(this.rng() * 80);
+          placed++;
+        }
+      }
+    }
+  }
+
+  // ---------------- species ----------------
+  newSpecies(g, parent, parentOrg) {
+    const cnt = countTypes(g);
+    const n = g.cells.length;
+    const role = classify(cnt, g.diet);
+    let genus;
+    if (parent && parent.role === role && this.rng() < 0.75) genus = parent.genus;
+    else genus = makeGenus(this.rng);
+    let epithet = makeEpithet(this.rng, cnt, n, role);
+    let name = genus + ' ' + epithet;
+    let k = 2;
+    const used = this._names || (this._names = new Set());
+    while (used.has(name)) { name = genus + ' ' + epithet + ' ' + ['II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'][Math.min(k - 2, 8)] + (k > 10 ? k : ''); k++; }
+    used.add(name);
+    const sp = {
+      id: this.species.length + 1, name, genus, common: makeCommonName(this.rng, cnt, n, role),
+      parent: parent ? parent.id : null, born: this.tick, died: null, rep: cloneGenome(g), role,
+      alive: 0, peak: 0, births: 0, abundance: 0, maxCells: n, hue: Math.floor(this.rng() * 360),
+      cnt, depth: parent ? parent.depth + 1 : 0,
+    };
+    this.species.push(sp);
+    this.speciesById.set(sp.id, sp);
+    if (parent) {
+      const gained = [];
+      for (let t = 1; t < 7; t++) if (cnt[t] > 0 && parent.cnt[t] === 0) gained.push(TYPE_NAMES[t]);
+      const roleShift = parent.role !== role;
+      if (gained.length || roleShift) {
+        this.innovations.push({ tick: this.tick, species: sp.id, parent: parent.id, gained,
+          roleFrom: parent.role, roleTo: role });
+      }
+    }
+    return sp;
+  }
+
+  // ---------------- organisms ----------------
+  canPlace(cells, x, y, rot, selfSlot, spacing) {
+    const { W, H, occ, terrain } = this;
+    for (const c of cells) {
+      const ax = x + rotX(c.x, c.y, rot), ay = y + rotY(c.x, c.y, rot);
+      if (ax < 0 || ay < 0 || ax >= W || ay >= H) return false;
+      const i = ay * W + ax;
+      if (terrain[i] === WALL) return false;
+      const o = occ[i];
+      if (o !== 0 && o !== selfSlot + 1) return false;
+      if (spacing) {
+        for (let d = 0; d < 4; d++) {
+          const nx = ax + DX[d], ny = ay + DY[d];
+          if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+          const oo = occ[ny * W + nx];
+          if (oo !== 0 && oo !== selfSlot + 1) return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  spawn(g, x, y, rot, energy, sp, gen) {
+    let slot;
+    if (this.free.length) slot = this.free.pop(); else { slot = this.orgs.length; this.orgs.push(null); }
+    const cnt = countTypes(g);
+    const n = g.cells.length;
+    let w = 0; for (const c of g.cells) w += UPKEEP[c.t];
+    const mass = n + cnt[T.ARMOR];
+    const o = {
+      slot, id: this.nextId++, x, y, rot, g, n, cnt, E: energy, age: 0,
+      life: Math.round(K.LIFE0 * Math.pow(n, 0.25) * (0.8 + this.rng() * 0.4)),
+      hp: n * K.HP, sp: sp.id, gen, heading: Math.floor(this.rng() * 4), cool: 0,
+      role: classify(cnt, g.diet), maxE: K.MAXE * n * K.CB,
+      upk: w * Math.pow(n, -0.25),                         // Kleiber: total ∝ n^0.75
+      speed: cnt[T.MOVER] ? Math.min(1, 1.4 * cnt[T.MOVER] / Math.sqrt(mass)) : 0, // bigger bodies are slower, but less than in proportion (Hirt et al. 2017)
+      mass, ...dietEff(g.diet, cnt[T.PROD] && cnt[T.MOUTH] ? 1 - K.MIXO_COST : 1),
+      insul: Math.min(1, 2 * cnt[T.ARMOR] / n), alive: true, born: this.tick,
+      height: Math.max(1, cnt[T.PROD] + 0.5 * cnt[T.ARMOR]), // leaves give height; woody armour helps a little
+      reserve: 0.2 + 2.2 * g.repro, ate: 0, kills: 0, nstore: 0, stress: 0,                       // evolvable: breed early (r) vs build reserves (K)
+    };
+    this.orgs[slot] = o;
+    this.stamp(o);
+    sp.alive++; sp.births++;
+    if (sp.alive > sp.peak) sp.peak = sp.alive;
+    this.totalBirths++;
+    if (gen > this.maxGen) this.maxGen = gen;
+    if (!this.biggest || n > this.biggest.n) this.biggest = { n, sp: sp.id, tick: this.tick, g: cloneGenome(g) };
+    if (n > sp.maxCells) sp.maxCells = n;
+    this.roleSeen[o.role] = true;
+    return o;
+  }
+
+  stamp(o) {
+    const { W } = this;
+    for (const c of o.g.cells) {
+      const i = (o.y + rotY(c.x, c.y, o.rot)) * W + (o.x + rotX(c.x, c.y, o.rot));
+      this.occ[i] = o.slot + 1; this.cellT[i] = c.t;
+    }
+  }
+  unstamp(o) {
+    const { W } = this;
+    for (const c of o.g.cells) {
+      const i = (o.y + rotY(c.x, c.y, o.rot)) * W + (o.x + rotX(c.x, c.y, o.rot));
+      this.occ[i] = 0; this.cellT[i] = 0;
+    }
+  }
+
+  kill(o, cause, killer) {
+    if (!o.alive) return;
+    o.alive = false;
+    this.unstamp(o);
+    let pool = Math.max(0, o.E) + o.n * K.CB * 0.5;
+    // A predator with a mouth eats part of its kill on the spot; leftovers become carrion.
+    if (killer && killer.alive && killer.cnt[T.MOUTH]) {
+      const eff = o.role === ROLE.PLANT ? killer.effLive : killer.effMeat;
+      const room = Math.max(0, (killer.maxE - killer.E) / eff);
+      const eat = Math.min(pool * K.KILL_EAT, room);
+      killer.E += eat * eff; killer.ate += eat * eff; pool -= eat;
+      if (o.role !== ROLE.PLANT) killer.nstore = Math.min(K.NSTORE_MAX, killer.nstore + eat * K.N_FROM_MEAT);
+      killer.kills = (killer.kills || 0) + 1;
+    }
+    const per = pool / o.n;
+    const kind = o.role === ROLE.PLANT ? 1 : 2;
+    const { W } = this;
+    for (const c of o.g.cells) {
+      const i = (o.y + rotY(c.x, c.y, o.rot)) * W + (o.x + rotX(c.x, c.y, o.rot));
+      this.food[i] += per; this.foodK[i] = kind;
+    }
+    this.deaths[cause] = (this.deaths[cause] || 0) + 1;
+    if (o.role === ROLE.PLANT && this.rng() < K.SEED_P) {
+      const si = o.y * this.W + o.x;
+      if (!this.seeds[si]) this.seedCount++;
+      this.seeds[si] = { g: o.g, sp: o.sp, gen: o.gen, t: this.tick };
+    }
+    const sp = this.speciesById.get(o.sp);
+    sp.alive--;
+    if (sp.alive === 0) sp.died = this.tick;
+    this.orgs[o.slot] = null;
+    this.free.push(o.slot);
+  }
+
+  // ---------------- mutation ----------------
+  mutate(g) {
+    const rng = this.rng;
+    const ng = cloneGenome(g);
+    let structural = false;
+    if (rng() < ng.mut) {
+      structural = true;
+      const r = rng();
+      const cells = ng.cells;
+      if (r < 0.28) { // change a cell's type
+        const c = cells[Math.floor(rng() * cells.length)];
+        c.t = 1 + Math.floor(rng() * 6); c.d = Math.floor(rng() * 4);
+      } else if (r < 0.55 || r >= 0.9) { // insertion (new random cell) or duplication (copy an existing cell)
+        if (cells.length < K.MAX_CELLS) {
+          const base = cells[Math.floor(rng() * cells.length)];
+          const d = Math.floor(rng() * 4);
+          const nx = base.x + DX[d], ny = base.y + DY[d];
+          if (!cells.some(c => c.x === nx && c.y === ny)) {
+            if (r >= 0.9) { const src = cells[Math.floor(rng() * cells.length)]; cells.push({ x: nx, y: ny, t: src.t, d: src.d }); }
+            else cells.push({ x: nx, y: ny, t: 1 + Math.floor(rng() * 6), d: Math.floor(rng() * 4) });
+          }
+        }
+      } else if (r < 0.72) { // deletion
+        if (cells.length > 1) {
+          const k = 1 + Math.floor(rng() * (cells.length - 1)); // never the origin cell (index 0)
+          const removed = cells.splice(k, 1)[0];
+          if (!connected(cells)) cells.splice(k, 0, removed);
+        }
+      } else { // re-aim an eye / reorient a part
+        const eyes = cells.filter(c => c.t === T.EYE);
+        if (eyes.length) eyes[Math.floor(rng() * eyes.length)].d = Math.floor(rng() * 4);
+      }
+    }
+    // small continuous drift
+    if (rng() < 0.3) ng.diet = Math.min(1, Math.max(0, ng.diet + (rng() - 0.5) * 0.12));
+    for (let i = 0; i < 4; i++) if (rng() < 0.15) ng.react[i] = Math.max(-1, Math.min(1, ng.react[i] + (rng() - 0.5) * 0.4));
+    if (rng() < 0.2) ng.repro = Math.max(0, Math.min(1, ng.repro + (rng() - 0.5) * 0.15));
+    if (rng() < 0.1) ng.mut = Math.max(0.01, Math.min(0.5, ng.mut * Math.exp((rng() - 0.5) * 0.4)));
+    return { g: ng, structural };
+  }
+
+  reproduce(o) {
+    const sp = this.speciesById.get(o.sp);
+    const { g, structural } = this.mutate(o.g);
+    const n2 = g.cells.length;
+    const cost = n2 * K.CB;
+    if (o.E < cost * (1 + o.reserve)) return;
+    const mobile = o.cnt[T.MOVER] > 0;
+    const rad = Math.ceil(Math.sqrt(o.n)) + 1;
+    for (let tries = 0; tries < 8; tries++) {
+      const dist = rad + 1 + Math.floor(this.rng() * (mobile ? 3 : 7));
+      const ang = this.rng() * Math.PI * 2;
+      const x = Math.round(o.x + Math.cos(ang) * dist), y = Math.round(o.y + Math.sin(ang) * dist);
+      const rot = Math.floor(this.rng() * 4);
+      if (this.canPlace(g.cells, x, y, rot, -1, !mobile)) {
+        o.E -= cost;
+        let csp = sp;
+        if (structural || this.rng() < 0.3) {
+          const dist = genomeDistance(sp.rep, g);
+          // a lineage that has changed its way of life counts as a new species sooner
+          const cn = countTypes(g), r1 = classify(cn, g.diet - 0.08), r2 = classify(cn, g.diet + 0.08);
+          const shifted = r1 === r2 && r1 !== sp.role; // clearly, not borderline, in a new role
+          if (dist > K.SPECIES_THRESH || (shifted && dist > K.SPECIES_THRESH * 0.7)) csp = this.newSpecies(g, sp, o);
+        }
+        this.spawn(g, x, y, rot, cost * K.CHILD_FRAC, csp, o.gen + 1);
+        o.cool = 8;
+        return;
+      }
+    }
+    o.cool = 12;
+    o.E -= cost * 0.05;
+  }
+
+  // ---------------- environment ----------------
+  globalLight() {
+    let l = this.cfg.sunlight;
+    if (this.cfg.seasons) l *= 1 + 0.3 * Math.sin((this.tick / K.YEAR) * Math.PI * 2);
+    for (const e of this.events) if (e.light) l *= e.light;
+    return l;
+  }
+  globalCold() {
+    let c = 0;
+    for (const e of this.events) if (e.cold) c += e.cold;
+    if (this.cfg.seasons) c += Math.max(0, -Math.sin((this.tick / K.YEAR) * Math.PI * 2)) * 0.25;
+    return c;
+  }
+  triggerEvent(type, x, y) {
+    const t = this.tick;
+    const E = {
+      drought: { type, name: 'Drought', light: 0.5, until: t + 1500 },
+      iceage: { type, name: 'Ice age', cold: 1.0, light: 0.85, until: t + 2500 },
+      bloom: { type, name: 'Nutrient bloom', light: 1.7, until: t + 900 },
+      meteor: { type, name: 'Meteor strike', until: t },
+      plague: { type, name: 'Plague', until: t },
+    }[type];
+    if (!E) return;
+    this.eventLog.push({ tick: t, type, name: E.name });
+    if (type === 'meteor') {
+      const cx = x != null ? x : Math.floor(this.rng() * this.W), cy = y != null ? y : Math.floor(this.rng() * this.H);
+      const r = Math.round(Math.min(this.W, this.H) * 0.14);
+      for (const o of this.orgs) {
+        if (!o) continue;
+        if ((o.x - cx) ** 2 + (o.y - cy) ** 2 <= r * r) { this.kill(o, 'catastrophe'); }
+      }
+      for (let yy = cy - r; yy <= cy + r; yy++) for (let xx = cx - r; xx <= cx + r; xx++) {
+        if (xx < 0 || yy < 0 || xx >= this.W || yy >= this.H) continue;
+        if ((xx - cx) ** 2 + (yy - cy) ** 2 <= r * r) { const i = yy * this.W + xx; this.food[i] = 0; this.fert[i] += 3; }
+      }
+      this.lastMeteor = { x: cx, y: cy, r, tick: t };
+      return;
+    }
+    if (type === 'plague') {
+      // strikes the most abundant species hardest (density-dependent disease)
+      let top = null; for (const s of this.species) if (s.alive > 0 && (!top || s.alive > top.alive)) top = s;
+      if (!top) return;
+      this.eventLog[this.eventLog.length - 1].name = 'Plague hits ' + top.name;
+      for (const o of this.orgs) if (o && o.sp === top.id && this.rng() < 0.6) this.kill(o, 'catastrophe');
+      return;
+    }
+    this.events.push(E);
+  }
+
+  // ---------------- main step ----------------
+  step() {
+    if (this.ended) return;
+    this.tick++;
+    const { W, H, occ, cellT, food, foodK, fert, terrain, rng } = this;
+    const L = this.globalLight() * K.LIGHT;
+    const gCold = this.globalCold();
+    this.events = this.events.filter(e => e.until > this.tick);
+    this.advanceSuccession();
+    if (this.cfg.randomEvents && rng() < 1 / 7000) {
+      this.triggerEvent(pick(rng, ['drought', 'iceage', 'bloom', 'meteor', 'plague']));
+    }
+
+    // predator density map (for interference)
+    const pd = this.predDens; pd.fill(0);
+    const cs = this.chunk, cw = this.cw;
+    for (const o of this.orgs) if (o && o.cnt[T.KILLER]) pd[((o.y / cs) | 0) * cw + ((o.x / cs) | 0)]++;
+    const PD = this.prodDens; PD.fill(0);
+    const HD = this.heightDens; HD.fill(0);
+    const PC = K.PCHUNK, pw = this.pw;
+    for (const o of this.orgs) {
+      if (!o || !o.cnt[T.PROD]) continue;
+      for (const c of o.g.cells) if (c.t === T.PROD) {
+        const ax = o.x + rotX(c.x, c.y, o.rot), ay = o.y + rotY(c.x, c.y, o.rot);
+        const p = ((ay / PC) | 0) * pw + ((ax / PC) | 0);
+        PD[p]++; HD[p] += o.height;
+      }
+    }
+
+    const orgs = this.orgs;
+    const len = orgs.length;
+    const start = Math.floor(rng() * Math.max(1, len));
+    for (let k = 0; k < len; k++) {
+      const o = orgs[(start + k) % len];
+      if (!o || !o.alive) continue;
+      o.age++;
+      if (o.nstore > 0.001) o.nstore *= K.NSTORE_DECAY;
+      if (o.stress > 0.01) o.stress *= K.STRESS_DECAY;
+      const ai = o.y * W + o.x;
+      const bi = terrain[ai] === WALL ? 0 : terrain[ai];
+      const B = BIOMES[bi];
+      // metabolism
+      const cold = (B.cold + gCold) * (1 - o.insul);
+      o.E -= (o.upk + (o.cnt[T.MOUTH] ? K.ANIMAL_BASE : 0)) * B.upkeep + K.COLD * cold * o.n; // animals run hotter than plants
+      const rot = o.rot;
+      const cells = o.g.cells;
+      const hungry = o.E < o.maxE;
+      const canHunt = o.E < o.maxE * K.SATIATE;
+      let fed = false;
+      for (let ci = 0; ci < cells.length; ci++) {
+        if (!o.alive) break;
+        const c = cells[ci];
+        const t = c.t;
+        if (t === T.PROD) {
+          const ax = o.x + rotX(c.x, c.y, rot), ay = o.y + rotY(c.x, c.y, rot);
+          const ti = ay * W + ax;
+          // Light competition: bigger (taller) bodies are shaded less by smaller neighbours and shade
+          // them more; a body's own leaves shade it only a little.
+          const p = ((ay / PC) | 0) * pw + ((ax / PC) | 0);
+          let own = 0;
+          for (const c2 of cells) if (c2.t === T.PROD && ((((o.y + rotY(c2.x, c2.y, rot)) / PC) | 0) * pw + (((o.x + rotX(c2.x, c2.y, rot)) / PC) | 0)) === p) own++;
+          const others = PD[p] - own;
+          const rel = others > 0 ? Math.min(2, Math.sqrt((HD[p] - own * o.height) / others / o.height)) : 0;
+          const shade = (others * rel + own * K.SELF_SHADE) / K.PCAP;
+          const tb = terrain[ti] === WALL ? B : BIOMES[terrain[ti]];
+          const soil = tb.soil + fert[ti] * 0.1 + o.nstore;          // nutrients: biome soil + recycled matter + what it has eaten
+          const nf = Math.min(1.6, 1.5 * soil / (soil + 0.5));            // = 1 on grassland soil
+          const g = L * tb.light * Math.max(0, 1 - shade) * nf * (o.cnt[T.MOUTH] ? 1 - K.MIXO_COST : 1); // mixotrophs pay for running both systems
+          // a share of production is shed as leaf litter: the base of the detrital food chain
+          if (g > 0) { food[ti] += g * K.LITTER; if (foodK[ti] !== 2 || food[ti] < 1) foodK[ti] = 1; }
+          if (hungry || g < 0) o.E += g * (1 - K.LITTER);
+        } else if (t === T.MOUTH && hungry) {
+          const ax = o.x + rotX(c.x, c.y, rot), ay = o.y + rotY(c.x, c.y, rot);
+          // Look at the 9 tiles the mouth touches and take the most rewarding bite.
+          let bestGain = 0, bestTi = -1, bestKind = 0;
+          const d0 = Math.floor(rng() * 8);
+          for (let s = -1; s < 8; s++) {
+            let nx = ax, ny = ay;
+            if (s >= 0) { const d = (d0 + s) & 7; nx += NX[d]; ny += NY[d]; }
+            if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+            const ti = ny * W + nx;
+            const oc = occ[ti];
+            if (food[ti] > 0 && (oc === 0 || (oc === o.slot + 1 ? cellT[ti] !== T.PROD : cellT[ti] === T.PROD))) { // litter under other plants, never your own
+              const gain = Math.min(food[ti], K.BITE) * (foodK[ti] === 1 ? o.effDetritus : o.effCarrion);
+              if (gain > bestGain) { bestGain = gain; bestTi = ti; bestKind = 1; }
+            }
+            if (o.speed > 0 && oc && oc !== o.slot + 1 && cellT[ti] === T.PROD) { // only mobile animals can graze; sessile ones live on what falls to them
+              const tgt = orgs[oc - 1];
+              if (tgt && tgt.alive && tgt.sp !== o.sp) {
+                const gain = this.grazeAvail(tgt, o) * o.effLive;
+                if (gain > bestGain) { bestGain = gain; bestTi = ti; bestKind = 2; }
+              }
+            }
+          }
+          if (bestGain > o.upk * K.GUD) fed = true; // giving-up rule: only linger while the patch pays (Charnov 1976)
+          if (bestKind === 1) {
+            const take = Math.min(food[bestTi], K.BITE);
+            food[bestTi] -= take; if (food[bestTi] < 0.05) food[bestTi] = 0;
+            o.E += bestGain; o.ate += bestGain;
+            if (foodK[bestTi] === 2) o.nstore = Math.min(K.NSTORE_MAX, o.nstore + take * K.N_FROM_MEAT);
+          } else if (bestKind === 2) {
+            const tgt = orgs[occ[bestTi] - 1];
+            // Light grazing crops stored energy but leaves the rootstock. Sustained heavy grazing
+            // wears the plant down (stress) until even the rootstock is eaten and the plant dies.
+            const drain = this.grazeAvail(tgt, o);
+            tgt.E -= drain;
+            tgt.stress += drain;
+            o.E += drain * o.effLive; o.ate += drain * o.effLive;
+            if (tgt.E <= 0.05 && tgt.stress > K.OVERGRAZE) this.kill(tgt, 'grazed', o); // overgrazed to death
+          }
+        } else if (t === T.KILLER && canHunt) {
+          const ax = o.x + rotX(c.x, c.y, rot), ay = o.y + rotY(c.x, c.y, rot);
+          const d0 = Math.floor(rng() * 8);
+          for (let s = 0; s < 8; s++) {
+            const d = (d0 + s) & 7;
+            const nx = ax + NX[d], ny = ay + NY[d];
+            if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+            const ti = ny * W + nx;
+            const oc = occ[ti];
+            if (oc && oc !== o.slot + 1 && cellT[ti] !== T.ARMOR && cellT[ti] !== T.PROD) { // tough cellulose: killers can't hurt producer cells
+              const tgt = orgs[oc - 1];
+              if (!tgt || !tgt.alive || tgt.sp === o.sp) continue;
+              const dens = pd[((o.y / cs) | 0) * cw + ((o.x / cs) | 0)];
+              if (rng() < (1 - B.cover) / (1 + K.INTERF * Math.max(0, dens - 1))) { // interference + cover
+                tgt.hp -= 1;
+                o.E -= 0.05; // effort
+                if (tgt.hp <= 0) this.kill(tgt, 'predation', o);
+                else if (tgt.cnt[T.KILLER] && rng() < K.RETALIATE * Math.min(1, tgt.cnt[T.KILLER] / 2)) {
+                  o.hp -= 1; // armed prey strike back: killer cells are useful for defence before they are useful for hunting
+                  if (o.hp <= 0) this.kill(o, 'predation', tgt);
+                }
+              }
+              break;
+            }
+          }
+        }
+      }
+      if (!o.alive) continue;
+      // movement
+      if (o.speed > 0 && !fed && rng() < o.speed) this.think(o, B); // animals stop to eat
+      // life & death
+      if (o.E <= 0) { this.kill(o, cold > 0.5 && o.upk * B.upkeep < K.COLD * cold * o.n ? 'cold' : 'starvation'); continue; }
+      if (o.age > o.life) { this.kill(o, 'age'); continue; }
+      const spo = this.speciesById.get(o.sp);
+      if (spo.disease > 0 && rng() < spo.disease) { this.kill(o, 'disease'); continue; }
+      if (o.E > o.maxE) o.E = o.maxE;
+      if (o.hp < o.n * K.HP && rng() < 0.02) o.hp++;
+      if (o.cool > 0) o.cool--;
+      else if (o.age > K.MATURE && o.E >= o.n * K.CB * (1 + o.reserve)) this.reproduce(o);
+    }
+
+    // food decay -> soil fertility (nutrient recycling)
+    let dead = 0;
+    for (let i = 0, N = W * H; i < N; i++) {
+      const f = food[i];
+      dead += f;
+      if (f > 0) {
+        const dec = f * (foodK[i] === 1 ? K.DECAY_PLANT : K.DECAY_MEAT);
+        const nf = f - dec;
+        fert[i] += dec * K.FERT_GAIN * 10;
+        if (nf < 0.15) { food[i] = 0; fert[i] += nf * K.FERT_GAIN * 10; } else food[i] = nf;
+      }
+      if (fert[i] > 0) fert[i] *= K.FERT_DECAY;
+    }
+    this.deadMatter = dead;
+    this.sproutSeeds();
+
+    if (this.tick % 20 === 0) this.sample();
+  }
+
+  // How much a grazer can take from a plant this bite. Armour (bark, thorns) makes plants harder to eat.
+  // Armour is weighed against the grazer's mouths, so grazers can answer armour with more mouths (an arms race).
+  grazeAvail(tgt, o) {
+    const floor = tgt.stress > K.OVERGRAZE ? 0 : K.GRAZE_FLOOR;
+    return Math.min(K.GRAZE, Math.max(0, tgt.E - floor)) / (1 + K.ARMOR_DEFENSE * tgt.cnt[T.ARMOR] / o.cnt[T.MOUTH]);
+  }
+
+  // An eye scans a widening cone in the direction it faces. Every visible thing is weighed by how
+  // strongly this organism's genes react to it (and how far away it is); the strongest wins.
+  // Seeds sprout where the ground has been cleared: a bare patch with no plants shading it.
+  sproutSeeds() {
+    const { W, H, seeds, occ } = this, N = W * H, PD = this.prodDens, PC = K.PCHUNK, pw = this.pw;
+    const checks = Math.ceil(N / 300);
+    for (let k = 0; k < checks; k++) {
+      const i = Math.floor(this.rng() * N);
+      const sd = seeds[i];
+      if (!sd) continue;
+      if (this.tick - sd.t > K.SEED_LIFE) { seeds[i] = null; this.seedCount--; continue; }
+      if (occ[i]) continue;
+      const x = i % W, y = (i / W) | 0;
+      if (PD[((y / PC) | 0) * pw + ((x / PC) | 0)] > 0) continue;
+      if (!this.canPlace(sd.g.cells, x, y, 0, -1, true)) continue;
+      const sp = this.speciesById.get(sd.sp);
+      const wasGone = sp.alive === 0 ? this.tick - sp.died : 0;
+      seeds[i] = null; this.seedCount--;
+      this.spawn(cloneGenome(sd.g), x, y, 0, K.SEED_E, sp, sd.gen);
+      if (wasGone) {
+        sp.died = null; sp.revived = (sp.revived || 0) + 1;
+        if (wasGone > K.YEAR / 2 && sp.peak >= 20) this.eventLog.push({ tick: this.tick, type: 'revival', name: sp.name + ' sprouts again from the seed bank after ' + (wasGone / K.YEAR).toFixed(1) + ' years' });
+      }
+    }
+  }
+
+  look(o, eye, B) {
+    const { W, H, occ, cellT, food, terrain } = this;
+    const react = o.g.react;
+    const dir = (eye.d + o.rot) & 3;
+    const ex = o.x + rotX(eye.x, eye.y, o.rot), ey = o.y + rotY(eye.x, eye.y, o.rot);
+    const px = DX[(dir + 1) & 3], py = DY[(dir + 1) & 3];
+    const R = Math.max(2, Math.round(K.EYE_RANGE * B.vis));
+    let best = 0, bestCat = -1, bestDist = 0;
+    for (let s = 1; s <= R; s++) {
+      const spread = Math.min(3, (s / 3) | 0);
+      const cx = ex + DX[dir] * s, cy = ey + DY[dir] * s;
+      const fall = 1 - s / (R + 4);
+      for (let l = 0; l <= spread * 2; l++) {
+        const off = (l & 1 ? -1 : 1) * ((l + 1) >> 1);
+        const x = cx + px * off, y = cy + py * off;
+        if (x < 0 || y < 0 || x >= W || y >= H) continue;
+        const i = y * W + x;
+        if (terrain[i] === WALL) continue;
+        const oc = occ[i];
+        let cat = -1;
+        if (oc) {
+          if (oc === o.slot + 1) continue;
+          const tgt = this.orgs[oc - 1];
+          if (!tgt || tgt.sp === o.sp) continue; // ignore kin
+          const ct = cellT[i];
+          cat = ct === T.PROD ? 1 : ct === T.KILLER ? 2 : 3;
+        } else if (food[i] > 0.5) cat = 0;
+        if (cat === 1 && food[i] > 0.5 && Math.abs(react[0]) > Math.abs(react[1])) cat = 0; // litter under a plant
+        if (cat < 0) continue;
+        const w = Math.abs(react[cat]) * fall;
+        if (w > best) { best = w; bestCat = cat; bestDist = s; }
+      }
+    }
+    return bestCat < 0 ? null : { cat: bestCat, dist: bestDist, dir, w: best };
+  }
+
+  think(o, B) {
+    let best = 0.15, bestDir = -1;
+    if (o.cnt[T.EYE]) {
+      for (const c of o.g.cells) {
+        if (c.t !== T.EYE) continue;
+        const seen = this.look(o, c, B);
+        if (!seen) continue;
+        const r = o.g.react[seen.cat];
+        const w = seen.w;
+        if (w > best) { best = w; bestDir = r > 0 ? seen.dir : (seen.dir + 2) & 3; }
+      }
+    }
+    if (bestDir >= 0) o.heading = bestDir;
+    else if (this.rng() < 0.07) o.heading = Math.floor(this.rng() * 4);
+    if (this.rng() < 0.02) { // occasional turn of the body
+      const nr = (o.rot + (this.rng() < 0.5 ? 1 : 3)) & 3;
+      if (this.canPlace(o.g.cells, o.x, o.y, nr, o.slot, false)) { this.unstamp(o); o.rot = nr; this.stamp(o); }
+    }
+    // try to step forward; if blocked, sidestep left or right (walk around obstacles)
+    const side = this.rng() < 0.5 ? 1 : 3;
+    const tries = [o.heading, (o.heading + side) & 3, (o.heading + 4 - side) & 3];
+    for (let k = 0; k < 3; k++) {
+      const d = tries[k];
+      const nx = o.x + DX[d], ny = o.y + DY[d];
+      if (this.canPlace(o.g.cells, nx, ny, o.rot, o.slot, false)) {
+        this.unstamp(o); o.x = nx; o.y = ny; this.stamp(o);
+        const ti = ny * this.W + nx;
+        const tb = this.terrain[ti] === WALL ? B : BIOMES[this.terrain[ti]];
+        o.E -= K.MOVE * o.mass * tb.move;
+        if (k > 0 && bestDir < 0) o.heading = d;
+        return;
+      }
+    }
+    o.heading = Math.floor(this.rng() * 4);
+  }
+
+  // ---------------- stats ----------------
+  counts() {
+    const roles = [0, 0, 0, 0, 0];
+    let cellsSum = 0, animals = 0, maxCells = 0, total = 0, consumers = 0;
+    const typeSum = [0, 0, 0, 0, 0, 0, 0];
+    for (const o of this.orgs) {
+      if (!o) continue;
+      total++;
+      roles[o.role]++;
+      if (o.cnt[T.MOUTH]) consumers++;
+      if (o.role !== ROLE.PLANT) { cellsSum += o.n; animals++; }
+      if (o.n > maxCells) maxCells = o.n;
+      for (let t = 1; t < 7; t++) typeSum[t] += o.cnt[t];
+    }
+    let spAlive = 0; for (const s of this.species) if (s.alive > 0) spAlive++;
+    return { roles, total, consumers, meanAnimalCells: animals ? cellsSum / animals : 0, maxCells, spAlive, typeSum };
+  }
+
+  sample() {
+    const c = this.counts();
+    // Specialist diseases spread best through crowded species ("kill the winner"): transmission depends on
+    // how densely a species packs the world, so abundant species suffer extra deaths and rare ones, like most
+    // predators, escape. This keeps any one strategy from taking over.
+    const tiles = this.W * this.H;
+    for (const s of this.species) {
+      const dens = s.alive / tiles;
+      s.disease = dens > K.DISEASE_FREE ? K.DISEASE * Math.min(1, (dens - K.DISEASE_FREE) / (2 * K.DISEASE_FREE)) : 0;
+    }
+    for (const s of this.species) s.abundance += s.alive;
+    for (let r = 0; r < 4; r++) {
+      if (this.roleSeen[r] && c.roles[r] === 0 && this.roleExtinct[r] == null) this.roleExtinct[r] = this.tick;
+      if (c.roles[r] > 0) this.roleExtinct[r] = null;
+    }
+    if (c.total > this.peakPop) this.peakPop = c.total;
+    this.history.push({ t: this.tick, r: c.roles.slice(), sp: c.spAlive, mc: c.meanAnimalCells, xc: c.maxCells, total: c.total });
+    if (this.history.length > 1200) { // downsample older half
+      const h = this.history; const out = [];
+      for (let i = 0; i < h.length; i++) if (i >= h.length - 300 || i % 2 === 0) out.push(h[i]);
+      this.history = out;
+    }
+    this.last = c;
+    if (c.total === 0) this.end('Total extinction: nothing is left alive.');
+    else if (c.consumers === 0 && !this.pending.length && (this.roleSeen[1] || this.roleSeen[2] || this.roleSeen[3])) {
+      if (this.noConsumerSince < 0) this.noConsumerSince = this.tick;
+      else if (this.tick - this.noConsumerSince > 600) this.end('The food web collapsed: no animal life remains, only plants.');
+    } else this.noConsumerSince = -1;
+  }
+
+  end(reason) {
+    if (this.ended) return;
+    this.ended = { tick: this.tick, reason };
+  }
+
+  summary() {
+    const sp = this.species;
+    const byAb = sp.slice().sort((a, b) => b.abundance - a.abundance);
+    const life = s => (s.died != null ? s.died : this.tick) - s.born;
+    const byLife = sp.slice().sort((a, b) => life(b) - life(a));
+    const animalAb = sp.filter(s => s.role !== ROLE.PLANT).sort((a, b) => b.abundance - a.abundance);
+    return {
+      ticks: this.tick, years: this.tick / K.YEAR, generations: this.maxGen, speciesTotal: sp.length,
+      peakPop: this.peakPop, births: this.totalBirths, deaths: Object.assign({}, this.deaths),
+      mostSuccessful: byAb.slice(0, 5), mostSuccessfulAnimal: animalAb[0] || null,
+      longestLived: byLife[0], biggest: this.biggest, innovations: this.innovations.slice(),
+      events: this.eventLog.slice(), roleExtinct: this.roleExtinct.slice(), ended: this.ended,
+      history: this.history,
+    };
+  }
+}
+
+const API = { dietEff, World, T, TYPE_NAMES, ROLE, ROLE_NAMES, BIOMES, K, WALL, SIZES, countTypes, classify, rotX, rotY, genomeDistance };
+// Always expose a global for the page; also export for Node when a CommonJS module exists.
+global.EvoSim = API;
+if (typeof window !== 'undefined') window.EvoSim = API;
+if (typeof module !== 'undefined' && module && module.exports) module.exports = API;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+(() => {
+'use strict';
+const { World, T, TYPE_NAMES, ROLE, ROLE_NAMES, BIOMES, K, WALL, countTypes } = EvoSim;
+const $ = s => document.querySelector(s);
+const ROLE_VARS = ['--plant', '--grazer', '--predator', '--scavenger', '--other'];
+const ROLE_SING = ['Plant', 'Grazer', 'Predator', 'Scavenger', 'Oddity'];
+const CELL_RGB = [null, [92, 196, 106], [242, 193, 78], [89, 167, 232], [240, 82, 74], [154, 160, 178], [244, 244, 236]];
+const CELL_DESC = ['', 'Producer', 'Mouth', 'Mover', 'Killer', 'Armour', 'Eye'];
+const BIOME_RGB = [[30, 44, 27], [17, 38, 27], [52, 43, 25], [30, 38, 47], [20, 38, 36]];
+const WALL_RGB = [70, 66, 60];
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const yr = t => (t / K.YEAR);
+const fmtYr = t => yr(t).toFixed(t < K.YEAR * 10 ? 2 : 1);
+
+// ---------------------------------------------------------------- settings
+const DEFAULTS = { size: 'medium', biomes: [3, 2, 1, 1, 1], plants: 300, grazers: 60, predators: 12, scavengers: 30,
+  sunlight: 1.0, mutation: 1.0, seasons: true, randomEvents: true, barriers: false, staged: true };
+const PRESETS = [
+  { name: 'Balanced', cfg: {} },
+  { name: 'Island chain', cfg: { size: 'large', biomes: [2, 2, 1, 1, 1], barriers: true } },
+  { name: 'Deep forest', cfg: { biomes: [1, 4, 0, 0, 0], predators: 20 } },
+  { name: 'Carnivore bog', cfg: { biomes: [1, 1, 0, 0, 4], mutation: 2 } },
+  { name: 'Single ancestor', cfg: { grazers: 0, predators: 0, scavengers: 0, mutation: 2.5 } },
+  { name: 'Frozen north', cfg: { biomes: [1, 1, 0, 4, 0] } },
+  { name: 'Predator pressure', cfg: { predators: 50, grazers: 40 } },
+  { name: 'Barren and bright', cfg: { biomes: [1, 0, 4, 0, 0], sunlight: 1.4 } },
+];
+let cfg = Object.assign({}, DEFAULTS, { biomes: DEFAULTS.biomes.slice(), seed: rndSeed() });
+function rndSeed() { return Math.floor(Math.random() * 900000) + 100000; }
+
+function bindRange(id, get, set, fmt) {
+  const el = $('#' + id), out = $('#' + id + 'o');
+  el.value = get();
+  out.textContent = fmt(+el.value);
+  el.addEventListener('input', () => { set(+el.value); out.textContent = fmt(+el.value); onCfgChange(); });
+  return () => { el.value = get(); out.textContent = fmt(+el.value); };
+}
+const refreshers = [];
+for (let i = 0; i < 5; i++) refreshers.push(bindRange('b' + i, () => cfg.biomes[i], v => cfg.biomes[i] = v, v => v === 0 ? 'none' : '×' + v));
+for (const k of ['plants', 'grazers', 'predators', 'scavengers']) refreshers.push(bindRange('f-' + k, () => cfg[k], v => cfg[k] = v, v => String(v)));
+refreshers.push(bindRange('sun', () => cfg.sunlight, v => cfg.sunlight = v, v => Math.round(v * 100) + '%'));
+refreshers.push(bindRange('mut', () => cfg.mutation, v => cfg.mutation = v, v => v === 0 ? 'off' : v.toFixed(2).replace(/\.?0+$/, '') + '×'));
+const toggles = { 't-seasons': 'seasons', 't-events': 'randomEvents', 't-barriers': 'barriers', 't-staged': 'staged' };
+for (const [id, key] of Object.entries(toggles)) {
+  const el = $('#' + id); el.checked = cfg[key];
+  el.addEventListener('change', () => { cfg[key] = el.checked; onCfgChange(); });
+  refreshers.push(() => { el.checked = cfg[key]; });
+}
+const sizeSeg = $('#size');
+sizeSeg.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; cfg.size = b.dataset.v; onCfgChange(); });
+refreshers.push(() => sizeSeg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === cfg.size)));
+const seedIn = $('#seed');
+seedIn.addEventListener('change', () => { cfg.seed = (parseInt(seedIn.value, 10) || rndSeed()) >>> 0; onCfgChange(); });
+refreshers.push(() => { seedIn.value = cfg.seed; });
+$('#reseed').addEventListener('click', () => { cfg.seed = rndSeed(); onCfgChange(); });
+const presetBox = $('#presets');
+for (const p of PRESETS) {
+  const b = document.createElement('button'); b.className = 'chip'; b.textContent = p.name;
+  b.addEventListener('click', () => { cfg = Object.assign({}, DEFAULTS, { biomes: DEFAULTS.biomes.slice(), seed: cfg.seed }, JSON.parse(JSON.stringify(p.cfg))); onCfgChange(); });
+  presetBox.appendChild(b);
+}
+const notes = $('#biome-notes');
+notes.innerHTML = BIOMES.map(b => `<div><b>${b.name}</b><span class="muted">${b.blurb}</span></div>`).join('');
+
+let previewTimer = 0;
+function onCfgChange() {
+  if (cfg.biomes.every(v => v === 0)) cfg.biomes[0] = 1;
+  refreshers.forEach(f => f());
+  clearTimeout(previewTimer); previewTimer = setTimeout(drawPreview, 30);
+}
+function drawPreview() {
+  const w = new World(Object.assign({}, cfg, { plants: 0, grazers: 0, predators: 0, scavengers: 0 }));
+  const c = $('#preview');
+  c.width = w.W; c.height = w.H;
+  const ctx = c.getContext('2d');
+  const img = ctx.createImageData(w.W, w.H);
+  const d = img.data;
+  for (let i = 0; i < w.W * w.H; i++) {
+    const t = w.terrain[i];
+    const rgb = t === WALL ? WALL_RGB : [[58, 90, 47], [31, 74, 50], [122, 100, 56], [93, 114, 134], [62, 98, 86]][t];
+    const n = ((i * 2654435761) >>> 0) % 7 - 3;
+    d[i * 4] = rgb[0] + n; d[i * 4 + 1] = rgb[1] + n; d[i * 4 + 2] = rgb[2] + n; d[i * 4 + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+}
+onCfgChange();
+
+// ---------------------------------------------------------------- body drawing
+function drawBody(canvas, g, mode, hue) {
+  const dpr = window.devicePixelRatio || 1;
+  const sz = canvas.clientWidth || 38;
+  canvas.width = sz * dpr; canvas.height = sz * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!g) return;
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  for (const c of g.cells) { x0 = Math.min(x0, c.x); x1 = Math.max(x1, c.x); y0 = Math.min(y0, c.y); y1 = Math.max(y1, c.y); }
+  const span = Math.max(x1 - x0 + 1, y1 - y0 + 1, 3);
+  const cs = Math.floor((canvas.width * 0.8) / span);
+  const ox = (canvas.width - (x1 - x0 + 1) * cs) / 2, oy = (canvas.height - (y1 - y0 + 1) * cs) / 2;
+  const gap = Math.max(1, Math.round(cs * 0.08));
+  for (const c of g.cells) {
+    const rgb = CELL_RGB[c.t];
+    ctx.fillStyle = mode === 'species' ? `hsl(${hue},70%,62%)` : `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+    const px = ox + (c.x - x0) * cs, py = oy + (c.y - y0) * cs;
+    ctx.fillRect(px + gap / 2, py + gap / 2, cs - gap, cs - gap);
+    if (c.t === T.EYE) { // pupil shows which way the eye looks
+      ctx.fillStyle = '#111';
+      const dx = [1, 0, -1, 0][c.d], dy = [0, 1, 0, -1][c.d];
+      const r = cs * 0.16;
+      ctx.beginPath(); ctx.arc(px + cs / 2 + dx * cs * 0.2, py + cs / 2 + dy * cs * 0.2, r, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+}
+
+// ---------------------------------------------------------------- run state
+let world = null, speed = 1, colorMode = 'cells', selected = null, selectedLast = null, armed = null, frame = 0;
+let feedItems = [], noted = new Set(), roleState = [false, false, false, false], seenEvents = 0, lastSpecies = 0;
+const SPEED_TICKS = [0, 1, 4, 16, Infinity];
+const canvas = $('#world'), ctx = canvas.getContext('2d');
+const off = document.createElement('canvas'), octx = off.getContext('2d');
+let img = null, buf32 = null;
+
+function startRun(seedOverride) {
+  if (seedOverride != null) cfg.seed = seedOverride;
+  world = new World(Object.assign({}, cfg, { biomes: cfg.biomes.slice() }));
+  off.width = world.W; off.height = world.H;
+  img = octx.createImageData(world.W, world.H);
+  buf32 = new Uint32Array(img.data.buffer);
+  sizeCanvas();
+  selected = null; selectedLast = null; armed = null; frame = 0;
+  feedItems = []; noted = new Set(); roleState = [false, false, false, false]; seenEvents = 0;
+  rowCache.forEach(r => r.el.remove()); rowCache.clear();
+  addFeed(0, `A ${cfg.size} world of ${describeBiomes()} is seeded with ${cfg.plants} plants.`, '');
+  $('#setup').hidden = true; $('#summary').hidden = true; $('#run').hidden = false; $('#hud').hidden = false;
+  $('#inspect').innerHTML = '<p class="inspect-empty">Click an organism on the slide, or a species below, to see its body, its genes and where its lineage came from.</p>';
+  setSpeed(1); setColorMode(colorMode);
+  buildLegend();
+  refreshSide(true);
+  window.scrollTo({ top: 0 });
+}
+function describeBiomes() {
+  const parts = BIOMES.map((b, i) => [b.name.toLowerCase(), cfg.biomes[i]]).filter(p => p[1] > 0).sort((a, b) => b[1] - a[1]).map(p => p[0]);
+  return parts.length > 1 ? parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1] : parts[0];
+}
+$('#start').addEventListener('click', () => startRun());
+
+function sizeCanvas() {
+  if (!world) return;
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = canvas.parentElement.clientWidth - 16;
+  const scale = Math.max(1, Math.floor((cssW * dpr) / world.W));
+  canvas.width = world.W * scale; canvas.height = world.H * scale;
+  canvas.dataset.scale = scale;
+}
+window.addEventListener('resize', () => { sizeCanvas(); });
+
+function setSpeed(s) { speed = s; $('#speed').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.s === s)); }
+$('#speed').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setSpeed(+b.dataset.s); });
+function setColorMode(m) { colorMode = m; $('#colormode').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.m === m)); buildLegend(); }
+$('#colormode').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { setColorMode(b.dataset.m); refreshSide(true); } });
+document.addEventListener('keydown', e => {
+  if ($('#run').hidden || e.target.closest('input')) return;
+  if (e.code === 'Space') { e.preventDefault(); setSpeed(speed === 0 ? 1 : 0); }
+});
+function buildLegend() {
+  const L = $('#cell-legend');
+  if (colorMode === 'species') { L.innerHTML = '<span>Each colour is one species. Watch colours split as lineages diverge.</span>'; return; }
+  L.innerHTML = '<span><i style="background:rgb(52,128,66)"></i>Plant</span>' + [1, 2, 3, 4, 5, 6].map(t => `<span><i style="background:rgb(${CELL_RGB[t].join(',')})"></i>${CELL_DESC[t]}</span>`).join('')
+    + '<span><i style="background:#6b5432"></i>Dead matter</span>';
+}
+
+document.querySelector('.evts').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || !world || world.ended) return;
+  const ev = b.dataset.ev;
+  if (ev === 'meteor') { armed = armed ? null : 'meteor'; b.setAttribute('aria-pressed', !!armed); showMsg(armed ? 'Click the slide to choose where the meteor lands.' : ''); return; }
+  world.triggerEvent(ev);
+});
+function showMsg(t) { const m = $('#msg'); m.textContent = t; m.hidden = !t; }
+
+canvas.addEventListener('click', e => {
+  if (!world) return;
+  const r = canvas.getBoundingClientRect();
+  const x = Math.floor((e.clientX - r.left) / r.width * world.W), y = Math.floor((e.clientY - r.top) / r.height * world.H);
+  if (armed === 'meteor') {
+    world.triggerEvent('meteor', x, y); armed = null; showMsg('');
+    document.querySelector('[data-ev="meteor"]').setAttribute('aria-pressed', false);
+    return;
+  }
+  // pick the organism under the cursor, or the nearest one within 3 tiles
+  let best = null, bd = 99;
+  for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) {
+    const xx = x + dx, yy = y + dy;
+    if (xx < 0 || yy < 0 || xx >= world.W || yy >= world.H) continue;
+    const oc = world.occ[yy * world.W + xx];
+    if (oc && dx * dx + dy * dy < bd) { bd = dx * dx + dy * dy; best = world.orgs[oc - 1]; }
+  }
+  if (best) select(best);
+});
+$('#end').addEventListener('click', () => { if (world && !world.ended) world.end('You ended the run.'); });
+
+function select(o) { selected = o; selectedLast = o; renderInspect(true); }
+
+// ---------------------------------------------------------------- render
+function render() {
+  const w = world, W = w.W, N = W * w.H;
+  const phase = (w.tick % K.YEAR) / K.YEAR;
+  const frost = cfg.seasons ? Math.max(0, -Math.sin(phase * Math.PI * 2)) : 0;
+  const cold = w.events.some(e => e.cold) ? 0.6 : 0;
+  const terr = [];
+  for (let b = 0; b < BIOMES.length; b++) {
+    let [r, g, bl] = BIOME_RGB[b];
+    const f = Math.min(1, ([0.25, 0.12, 0, 0.55, 0.2][b]) * frost + cold * (b === 2 ? 0.1 : 0.35));
+    r += (120 - r) * f; g += (132 - g) * f; bl += (146 - bl) * f;
+    terr.push([r, g, bl]);
+  }
+  const pack = (r, g, b) => (255 << 24) | ((b & 255) << 16) | ((g & 255) << 8) | (r & 255);
+  const terr32 = terr.map(c => pack(c[0], c[1], c[2]));
+  const wall32 = pack(...WALL_RGB);
+  const cell32 = CELL_RGB.map(c => c ? pack(c[0], c[1], c[2]) : 0);
+  const plant32 = pack(52, 128, 66);
+  const spCache = new Map();
+  const { occ, cellT, food, foodK, terrain, orgs } = w;
+  for (let i = 0; i < N; i++) {
+    const oc = occ[i];
+    if (oc) {
+      if (colorMode === 'species') {
+        const o = orgs[oc - 1];
+        let c = spCache.get(o.sp);
+        if (c === undefined) {
+          const sp = w.speciesById.get(o.sp);
+          const [r, g, b] = hsl2rgb(sp.hue, 0.68, cellT[i] === T.PROD ? 0.42 : 0.6);
+          c = pack(r, g, b); spCache.set(o.sp, c);
+        }
+        buf32[i] = cellT[i] === T.PROD ? c : c;
+      } else buf32[i] = (cellT[i] === T.PROD && orgs[oc - 1].role === ROLE.PLANT) ? plant32 : cell32[cellT[i]];
+      continue;
+    }
+    const t = terrain[i];
+    if (t === WALL) { buf32[i] = wall32; continue; }
+    const f = food[i];
+    if (f > 0.6) {
+      const base = terr[t], a = Math.min(0.85, f / 14);
+      const fr = foodK[i] === 2 ? [128, 44, 40] : [107, 84, 50];
+      buf32[i] = pack(base[0] + (fr[0] - base[0]) * a, base[1] + (fr[1] - base[1]) * a, base[2] + (fr[2] - base[2]) * a);
+    } else buf32[i] = terr32[t];
+  }
+  octx.putImageData(img, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(off, 0, 0, canvas.width, canvas.height);
+  const sc = +canvas.dataset.scale;
+  // meteor crater flash
+  if (w.lastMeteor && w.tick - w.lastMeteor.tick < 200) {
+    const m = w.lastMeteor, a = 1 - (w.tick - m.tick) / 200;
+    ctx.strokeStyle = `rgba(255,170,90,${a})`; ctx.lineWidth = Math.max(2, sc);
+    ctx.beginPath(); ctx.arc((m.x + 0.5) * sc, (m.y + 0.5) * sc, m.r * sc * (1.2 - a * 0.2), 0, Math.PI * 2); ctx.stroke();
+  }
+  // selection ring
+  if (selected && selected.alive) {
+    let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+    for (const c of selected.g.cells) {
+      const ax = selected.x + EvoSim.rotX(c.x, c.y, selected.rot), ay = selected.y + EvoSim.rotY(c.x, c.y, selected.rot);
+      x0 = Math.min(x0, ax); x1 = Math.max(x1, ax); y0 = Math.min(y0, ay); y1 = Math.max(y1, ay);
+    }
+    const pad = Math.max(3, sc * 1.5);
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = Math.max(1.5, sc * 0.35);
+    ctx.setLineDash([sc * 1.2, sc * 0.8]);
+    ctx.strokeRect(x0 * sc - pad, y0 * sc - pad, (x1 - x0 + 1) * sc + pad * 2, (y1 - y0 + 1) * sc + pad * 2);
+    ctx.setLineDash([]);
+  }
+}
+function hsl2rgb(h, s, l) {
+  h /= 360; const f = n => { const k = (n + h * 12) % 12; return l - s * Math.min(l, 1 - l) * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
+  return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)];
+}
+
+// ---------------------------------------------------------------- HUD + side panels
+const SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter'];
+function updateHud() {
+  const w = world, c = w.last;
+  $('#h-time').textContent = 'Year ' + fmtYr(w.tick);
+  $('#h-season').textContent = cfg.seasons ? SEASONS[Math.floor(((w.tick % K.YEAR) / K.YEAR) * 4)] : 'None';
+  $('#h-pop').textContent = c.total.toLocaleString();
+  $('#h-sp').textContent = c.spAlive;
+  $('#h-gen').textContent = w.maxGen;
+  const act = w.events.map(e => `<span class="pill hot">${e.name}, ${Math.max(0, (e.until - w.tick) / K.YEAR).toFixed(2)} yr left</span>`);
+  if (w.pending && w.pending.length) act.push(`<span class="pill">Waiting: ${w.pending.map(p => p.kind + 's').join(', ')}</span>`);
+  $('#active-events').innerHTML = act.join('');
+}
+
+function lineChart(cv, series, opt) {
+  const dpr = window.devicePixelRatio || 1;
+  const Wc = cv.clientWidth, Hc = cv.clientHeight;
+  if (!Wc) return;
+  cv.width = Wc * dpr; cv.height = Hc * dpr;
+  const g = cv.getContext('2d'); g.scale(dpr, dpr);
+  const padL = 34, padR = 8, padT = 6, padB = 18;
+  const pw = Wc - padL - padR, ph = Hc - padT - padB;
+  const n = series[0].data.length;
+  const ink = css('--muted'), line = css('--line');
+  g.font = '10.5px ' + css('--mono'); g.fillStyle = ink; g.strokeStyle = line; g.lineWidth = 1;
+  const tmax = opt.tmax || 1;
+  let ymin, ymax, ty;
+  if (opt.log) {
+    let mx = 1; for (const s of series) for (const v of s.data) if (v > mx) mx = v;
+    ymin = 0; ymax = Math.ceil(Math.log10(mx + 1) * 10) / 10 + 0.05;
+    const yv = v => Math.log10(v + 1);
+    ty = v => padT + ph - (yv(v) - ymin) / (ymax - ymin) * ph;
+    for (const v of [1, 10, 100, 1000, 10000]) {
+      if (Math.log10(v + 1) > ymax) break;
+      const y = Math.round(ty(v)) + 0.5;
+      g.beginPath(); g.moveTo(padL, y); g.lineTo(padL + pw, y); g.stroke();
+      g.textAlign = 'right'; g.fillText(v >= 1000 ? v / 1000 + 'k' : v, padL - 5, y + 3.5);
+    }
+  } else {
+    let mx = opt.min || 1; for (const s of series) for (const v of s.data) if (v > mx) mx = v;
+    ymin = 0; const step = mx <= 5 ? 1 : mx <= 12 ? 2 : mx <= 30 ? 5 : mx <= 60 ? 10 : mx <= 150 ? 25 : 50;
+    ymax = Math.ceil(mx / step) * step;
+    ty = v => padT + ph - (v - ymin) / (ymax - ymin) * ph;
+    for (let v = 0; v <= ymax; v += step) {
+      const y = Math.round(ty(v)) + 0.5;
+      g.beginPath(); g.moveTo(padL, y); g.lineTo(padL + pw, y); g.stroke();
+      g.textAlign = 'right'; g.fillText(v, padL - 5, y + 3.5);
+    }
+  }
+  // x ticks in years
+  const yrs = tmax / K.YEAR;
+  const xs = yrs <= 1 ? 0.25 : yrs <= 4 ? 1 : yrs <= 12 ? 2 : yrs <= 30 ? 5 : 10;
+  g.textAlign = 'center';
+  for (let v = 0; v <= yrs + 1e-9; v += xs) {
+    const x = padL + (v * K.YEAR / tmax) * pw;
+    g.fillText(xs < 1 ? v.toFixed(2) : v, Math.min(Math.max(x, padL + 8), padL + pw - 8), Hc - 4);
+  }
+  for (const s of series) {
+    g.strokeStyle = s.color; g.lineWidth = s.width || 1.6; g.lineJoin = 'round';
+    g.beginPath();
+    for (let i = 0; i < n; i++) {
+      const x = padL + (opt.ts[i] / tmax) * pw, y = ty(s.data[i]);
+      i ? g.lineTo(x, y) : g.moveTo(x, y);
+    }
+    g.stroke();
+    if (n) { const x = padL + (opt.ts[n - 1] / tmax) * pw, y = ty(s.data[n - 1]); g.fillStyle = s.color; g.beginPath(); g.arc(x, y, 2.6, 0, Math.PI * 2); g.fill(); }
+  }
+}
+function drawCharts(hist, popCv, cxCv) {
+  const ts = hist.map(h => h.t);
+  const tmax = Math.max(K.YEAR / 4, ts[ts.length - 1] || 1);
+  lineChart(popCv, [0, 1, 2, 3].map(r => ({ color: css(ROLE_VARS[r]), data: hist.map(h => h.r[r]) })), { log: true, ts, tmax });
+  lineChart(cxCv, [{ color: css('--muted'), data: hist.map(h => h.xc), width: 1.2 }, { color: css('--accent'), data: hist.map(h => h.mc), width: 2 }], { ts, tmax, min: 4 });
+}
+
+function livingBySpecies() {
+  const m = new Map();
+  for (const o of world.orgs) if (o) { if (!m.has(o.sp)) m.set(o.sp, o); }
+  return m;
+}
+function spRow(sp, rep, extra) {
+  const b = document.createElement('button'); b.className = 'sp';
+  b.innerHTML = `${extra || ''}<canvas></canvas><span class="nm"><span class="binom">${sp.name}</span><small><span class="role r${sp.role}">${roleLabel(sp.role, sp.cnt)}</span> ${sp.common}</small></span><span class="ct"></span>`;
+  return b;
+}
+let spFilter = 'all';
+const rowCache = new Map(); // species id -> { el, orgId, mode }
+$('#spfilter').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  spFilter = b.dataset.r;
+  $('#spfilter').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  refreshSide(true);
+});
+function refreshSide(force) {
+  const w = world;
+  drawCharts(w.history, $('#c-pop'), $('#c-cx'));
+  const rep = livingBySpecies();
+  const alive = w.species.filter(s => s.alive > 0).sort((a, b) => b.alive - a.alive);
+  const list = spFilter === 'all' ? alive : alive.filter(s => s.role === +spFilter);
+  const totals = [0, 0, 0, 0, 0]; for (const s of alive) totals[s.role] += s.alive;
+  const box = $('#splist');
+  const keep = new Set(list.map(s => s.id));
+  for (const [id, r] of rowCache) if (!keep.has(id)) { r.el.remove(); rowCache.delete(id); }
+  const prevScroll = box.scrollTop;
+  const aliveIds = new Set(); for (const x of w.orgs) if (x) aliveIds.add(x.id);
+  list.forEach((sp, i) => {
+    let r = rowCache.get(sp.id);
+    if (!r) {
+      const el = spRow(sp, null, '');
+      el.addEventListener('click', () => { const o = livingBySpecies().get(sp.id); if (o) select(o); });
+      r = { el, orgId: -1, mode: '' };
+      rowCache.set(sp.id, r);
+    }
+    const share = sp.alive / Math.max(1, totals[sp.role]) * 100;
+    r.el.querySelector('.ct').innerHTML = `${sp.alive.toLocaleString()}<small>${share < 1 ? '<1' : share.toFixed(0)}% of ${ROLE_NAMES[sp.role].toLowerCase()}</small>`;
+    if (box.children[i] !== r.el) box.insertBefore(r.el, box.children[i] || null);
+    // redraw the thumbnail only when the organism it shows has died or the colour mode changed
+    const o = rep.get(sp.id);
+    const cur = aliveIds.has(r.orgId) ? r.orgId : -1;
+    if (o && (cur < 0 || r.mode !== colorMode)) {
+      r.orgId = o.id; r.mode = colorMode;
+      drawBody(r.el.querySelector('canvas'), o.g, colorMode, sp.hue);
+      const lab = r.el.querySelector('.role'); lab.textContent = roleLabel(sp.role, o.cnt);
+    }
+  });
+  let empty = box.querySelector('.empty');
+  if (!list.length) { if (!empty) { empty = document.createElement('p'); empty.className = 'empty'; box.appendChild(empty); } empty.textContent = 'None alive right now.'; }
+  else if (empty) empty.remove();
+  box.scrollTop = prevScroll;
+  $('#sp-count').textContent = `${alive.length} alive · ${w.species.length} ever`;
+  notice();
+  renderFeed();
+  if (selectedLast) renderInspect(false);
+}
+
+// field notes: arrivals, disasters, new kinds of body, extinctions
+function addFeed(t, html, kind) { feedItems.unshift({ t, html, kind }); if (feedItems.length > 80) feedItems.pop(); }
+function spName(sp) { return `<span class="binom">${sp.name}</span>`; }
+function notice() {
+  const w = world;
+  while (seenEvents < w.eventLog.length) {
+    const e = w.eventLog[seenEvents++];
+    addFeed(e.tick, e.type === 'revival' ? `${e.name.replace(/^(\S+ \S+)/, '<span class="binom">$1</span>')}.` : e.type === 'arrival' || e.type === 'plague' ? `<b>${e.name}.</b>` : `<b>${e.name}</b> strikes.`, e.type === 'revival' ? 'new' : '');
+  }
+  for (const sp of w.species) {
+    if (noted.has(sp.id) || sp.parent == null) continue;
+    const need = sp.role === ROLE.PLANT ? 80 : 15;
+    if (sp.peak < need) continue;
+    noted.add(sp.id);
+    const par = w.speciesById.get(sp.parent), ch = changeOf(sp, par);
+    const what = ch.shift ? `a lineage of ${ROLE_NAMES[par.role].toLowerCase()} has become ${ROLE_NAMES[sp.role].toLowerCase()} and ${ch.text}` : ch.text;
+    addFeed(w.tick, `${spName(sp)} is thriving: ${what}. Split from ${spName(par)}.`, 'new');
+  }
+  const r = w.last.roles;
+  for (let k = 0; k < 4; k++) {
+    if (r[k] > 0 && !roleState[k]) { roleState[k] = true; if (w.tick > 0 && w.roleExtinctOnce && w.roleExtinctOnce[k]) addFeed(w.tick, `${ROLE_NAMES[k]} have evolved again.`, 'new'); }
+    if (r[k] === 0 && roleState[k]) { roleState[k] = false; (w.roleExtinctOnce || (w.roleExtinctOnce = []))[k] = true; addFeed(w.tick, `The last of the ${ROLE_NAMES[k].toLowerCase()} has died.`, 'ext'); }
+  }
+}
+function changeOf(sp, par) {
+  const gained = [], lost = [];
+  for (let t = 1; t < 7; t++) { if (sp.cnt[t] > par.cnt[t]) gained.push(CELL_DESC[t].toLowerCase()); if (sp.cnt[t] < par.cnt[t]) lost.push(CELL_DESC[t].toLowerCase()); }
+  const parts = [];
+  if (gained.length) parts.push('gained ' + listify(gained.map(g => (/^[aeiou]/.test(g) ? 'an ' : 'a ') + g)));
+  if (lost.length) parts.push('lost ' + listify(lost.map(g => (/^[aeiou]/.test(g) ? 'an ' : 'a ') + g)));
+  return { gained, lost, text: parts.length ? parts.join(' and ') : 'reshaped its body', shift: par.role !== sp.role };
+}
+function turningPoints(w) {
+  const out = [];
+  for (const sp of w.species) {
+    if (sp.parent == null) continue;
+    if (sp.peak < (sp.role === ROLE.PLANT ? 80 : 12)) continue;
+    const par = w.speciesById.get(sp.parent), ch = changeOf(sp, par);
+    if (!ch.gained.length && !ch.lost.length && !ch.shift) continue;
+    const html = ch.shift
+      ? `${ROLE_NAMES[par.role]} gave rise to ${ROLE_NAMES[sp.role].toLowerCase()}: <span class="binom">${sp.name}</span> ${ch.text}.`
+      : `<span class="binom">${sp.name}</span> ${ch.text}, peaking at ${sp.peak.toLocaleString()}.`;
+    out.push({ t: sp.born, html, w: sp.peak });
+  }
+  return out.sort((a, b) => b.w - a.w).slice(0, 10).sort((a, b) => a.t - b.t);
+}
+function listify(a) { return a.length <= 1 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]; }
+function renderFeed() {
+  $('#feed').innerHTML = feedItems.slice(0, 50).map(f => `<div class="k-${f.kind}"><span class="yr">Y${fmtYr(f.t)}</span><span>${f.html}</span></div>`).join('');
+}
+
+function roleLabel(role, cnt) {
+  if (cnt[T.PROD] && cnt[T.KILLER] && cnt[T.MOUTH] && !cnt[T.MOVER]) return 'Carnivorous plant';
+  if (role === ROLE.PLANT && cnt[T.ARMOR]) return 'Armoured plant';
+  if (role !== ROLE.PLANT && role !== ROLE.OTHER && cnt[T.PROD] && cnt[T.MOVER]) return 'Sun-powered ' + ROLE_SING[role].toLowerCase();
+  return ROLE_SING[role];
+}
+function strategy(repro) { return repro < 0.2 ? 'Breeds as soon as it can' : repro < 0.45 ? 'Breeds early' : repro < 0.7 ? 'Saves before breeding' : 'Builds big reserves'; }
+function renderInspect(force) {
+  const o = selectedLast; if (!o) return;
+  const w = world, sp = w.speciesById.get(o.sp);
+  const alive = o.alive;
+  const cnt = o.cnt;
+  const chain = []; let cur = sp;
+  while (cur && chain.length < 6) { chain.push(cur); cur = cur.parent ? w.speciesById.get(cur.parent) : null; }
+  const lineage = chain.map((s, i) => `<div><span class="arrow">${i ? '↑' : '•'}</span><span><span class="binom">${s.name}</span> <span class="muted">from Y${fmtYr(s.born)}${s.died != null ? ', extinct Y' + fmtYr(s.died) : ''}</span></span></div>`).join('')
+    + (cur ? '<div><span class="arrow">↑</span><span class="muted">older ancestors…</span></div>' : '');
+  const html = `
+    <div class="insp-head"><canvas id="insp-body"></canvas>
+      <div><span class="binom">${sp.name}</span><span class="muted">${sp.common}</span><div style="margin-top:4px"><span class="role r${o.role}">${roleLabel(o.role, o.cnt)}</span> ${alive ? '' : '<span class="pill" style="border-color:var(--bad);color:var(--bad)">Died</span>'}</div></div>
+    </div>
+    <div class="stats">
+      <div><span class="label">Energy</span><b>${Math.max(0, o.E).toFixed(0)} / ${o.maxE}</b><div class="bar"><i style="width:${Math.max(0, Math.min(100, o.E / o.maxE * 100)).toFixed(0)}%"></i></div></div>
+      <div><span class="label">Age</span><b>${o.age} / ${o.life} days</b><div class="bar"><i style="width:${Math.min(100, o.age / o.life * 100).toFixed(0)}%;background:var(--muted)"></i></div></div>
+      <div><span class="label">Generation</span><b>${o.gen}</b></div>
+      <div><span class="label">${o.cnt[T.KILLER] ? 'Kills' : 'Food eaten'}</span><b>${o.cnt[T.KILLER] ? o.kills : o.ate.toFixed(0)}</b></div>
+      <div style="grid-column:1/-1"><span class="label">Body · ${o.n} cell${o.n > 1 ? 's' : ''}</span>
+        <div class="cells">${[1, 2, 3, 4, 5, 6].filter(t => cnt[t]).map(t => `<span><i style="background:rgb(${CELL_RGB[t].join(',')})"></i>${cnt[t]} ${CELL_DESC[t].toLowerCase()}</span>`).join('')}</div></div>
+      <div style="grid-column:1/-1"><span class="label">Diet gene · ${o.g.diet.toFixed(2)}</span>
+        <div class="diet"><i style="left:${(o.g.diet * 100).toFixed(1)}%"></i></div><div class="diet-l"><span>living plants</span><span>dead matter</span><span>meat</span></div></div>
+      <div><span class="label">Breeding</span><b style="font-family:var(--body);font-size:13px">${strategy(o.g.repro)}</b></div>
+      <div><span class="label">Mutation rate</span><b>${(o.g.mut * 100).toFixed(1)}%</b></div>
+      ${o.cnt[T.PROD] ? `<div style="grid-column:1/-1"><span class="label">Nutrients from prey</span><b>${o.nstore > 0.05 ? '+' + o.nstore.toFixed(2) + ' soil boost' : 'none'}</b></div>` : ''}
+      <div style="grid-column:1/-1"><span class="label">Lineage</span><div class="lineage">${lineage}</div></div>
+    </div>`;
+  $('#inspect').innerHTML = html;
+  drawBody($('#insp-body'), o.g, colorMode, sp.hue);
+}
+
+// ---------------------------------------------------------------- main loop
+function loop() {
+  requestAnimationFrame(loop);
+  if (!world || $('#run').hidden) return;
+  frame++;
+  const n = SPEED_TICKS[speed];
+  if (n === Infinity) { const t0 = performance.now(); while (performance.now() - t0 < 28 && !world.ended) world.step(); }
+  else for (let i = 0; i < n && !world.ended; i++) world.step();
+  if (selected && !selected.alive) selected = null;
+  render();
+  if (frame % 6 === 0) updateHud();
+  if (frame % 30 === 0 || (speed === 0 && frame % 60 === 0)) refreshSide(false);
+  if (world.ended) { refreshSide(true); showSummary(); }
+}
+requestAnimationFrame(loop);
+
+// ---------------------------------------------------------------- summary
+function roleSpans(hist) {
+  return [0, 1, 2, 3].map(r => {
+    let first = null, last = null, segs = [], on = false, s0 = 0;
+    for (const h of hist) {
+      if (h.r[r] > 0) { if (first == null) first = h.t; last = h.t; if (!on) { on = true; s0 = h.t; } }
+      else if (on) { on = false; segs.push([s0, h.t]); }
+    }
+    if (on) segs.push([s0, hist[hist.length - 1].t]);
+    return { first, last, segs, total: segs.reduce((a, s) => a + s[1] - s[0], 0) };
+  });
+}
+function coexistence(hist) {
+  let tot = 0;
+  for (let i = 1; i < hist.length; i++) if ([0, 1, 2, 3].every(r => hist[i].r[r] > 0)) tot += hist[i].t - hist[i - 1].t;
+  return tot;
+}
+function showSummary() {
+  const w = world, S = w.summary();
+  $('#run').hidden = true; $('#hud').hidden = true;
+  const sec = $('#summary'); sec.hidden = false;
+  const hist = w.history;
+  const spans = roleSpans(hist);
+  const co = coexistence(hist);
+  const champ = S.mostSuccessfulAnimal;
+  const rep = livingBySpecies();
+  const animalsByAb = w.species.filter(s => s.role !== ROLE.PLANT).sort((a, b) => b.abundance - a.abundance);
+  const fame = w.species.slice().sort((a, b) => b.abundance - a.abundance).slice(0, 6);
+  const totalAb = w.species.reduce((a, s) => a + s.abundance, 0) || 1;
+  const life = s => (s.died != null ? s.died : w.tick) - s.born;
+  const innov = turningPoints(w).slice(0, 10);
+  const deaths = Object.entries(S.deaths).filter(([k, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+  const dTot = deaths.reduce((a, d) => a + d[1], 0) || 1;
+  const DNAME = { starvation: 'Starvation', predation: 'Killed', age: 'Old age', cold: 'Cold', catastrophe: 'Disasters', grazed: 'Overgrazed', disease: 'Disease' };
+  const endT = w.tick;
+  const champLine = champ ? (() => {
+    const share = (champ.abundance / Math.max(1, animalsByAb.reduce((a, s) => a + s.abundance, 0)) * 100).toFixed(0);
+    const par = champ.parent ? w.speciesById.get(champ.parent) : null;
+    const co = rep.get(champ.id); const nc = co ? co.n : champ.rep.cells.length;
+    return `<p>${champ.common[0].toUpperCase() + champ.common.slice(1)}. ${ROLE_SING[champ.role]} with ${nc} cell${nc > 1 ? 's' : ''}. It peaked at ${champ.peak.toLocaleString()} individuals and accounted for ${share}% of all animal life over the run. ${par ? `It descended from <span class="binom">${par.name}</span> and appeared in year ${fmtYr(champ.born)}.` : 'It was one of the founding species.'} ${champ.died != null ? `It went extinct in year ${fmtYr(champ.died)}.` : 'It was still alive at the end.'}</p>`;
+  })() : '<p>No animal lineage took hold.</p>';
+  sec.innerHTML = `
+    <div class="sum-hero">
+      <div>
+        <span class="label">Run complete · seed ${cfg.seed}</span>
+        <h2>This world lasted <em>${fmtYr(endT)} years.</em></h2>
+        <p>${S.ended ? S.ended.reason : ''} All four levels of the food web lived side by side for ${fmtYr(co)} years.</p>
+      </div>
+      <div class="figs">
+        <div><span class="label">Generations</span><b>${S.generations.toLocaleString()}</b></div>
+        <div><span class="label">Species</span><b>${S.speciesTotal.toLocaleString()}</b></div>
+        <div><span class="label">Peak population</span><b>${S.peakPop.toLocaleString()}</b></div>
+        <div><span class="label">Births</span><b>${S.births.toLocaleString()}</b></div>
+        <div><span class="label">Largest body</span><b>${S.biggest ? S.biggest.n : 0} cells</b></div>
+        <div><span class="label">Days simulated</span><b>${endT.toLocaleString()}</b></div>
+      </div>
+    </div>
+    <div class="sum-grid">
+      <div class="card span-7">
+        <h3>Most successful animal</h3>
+        ${champ ? `<div class="champ"><canvas id="champ-body"></canvas><div><span class="binom">${champ.name}</span><span class="role r${champ.role}">${roleLabel(champ.role, champ.cnt)}</span>${champLine}</div></div>` : champLine}
+      </div>
+      <div class="card span-5">
+        <h3>The food web <span class="label">years each level survived</span></h3>
+        <div class="web">${[0, 1, 2, 3].map(r => {
+          const sp = spans[r];
+          const bars = sp.segs.map(s => `<i style="left:${(s[0] / endT * 100).toFixed(2)}%;width:${Math.max(0.6, (s[1] - s[0]) / endT * 100).toFixed(2)}%;background:var(${ROLE_VARS[r]})"></i>`).join('');
+          return `<div class="lane"><span>${ROLE_NAMES[r]}</span><div class="track">${bars}</div><span class="yr">${sp.first == null ? 'never' : fmtYr(sp.total) + ' yr'}</span></div>`;
+        }).join('')}</div>
+        <p class="hint" style="margin-top:12px">Gaps mean a level died out and later re-evolved from another lineage.</p>
+      </div>
+      <div class="card span-6">
+        <h3>Population <span class="label">log scale, years</span></h3>
+        <canvas class="chart tall" id="s-pop"></canvas>
+        <div class="keys"><span><i style="background:var(--plant)"></i>Plants</span><span><i style="background:var(--grazer)"></i>Grazers</span><span><i style="background:var(--predator)"></i>Predators</span><span><i style="background:var(--scavenger)"></i>Scavengers</span></div>
+      </div>
+      <div class="card span-6">
+        <h3>Complexity <span class="label">cells per body</span></h3>
+        <canvas class="chart tall" id="s-cx"></canvas>
+        <div class="keys"><span><i style="background:var(--accent)"></i>Average animal</span><span><i style="background:var(--muted)"></i>Largest organism</span></div>
+      </div>
+      <div class="card span-6">
+        <h3>Hall of fame <span class="label">share of all life</span></h3>
+        <div class="fame" id="fame"></div>
+      </div>
+      <div class="card span-6">
+        <h3>Turning points</h3>
+        <div class="innov">${innov.length ? innov.map(i => `<div><span class="yr">Y${fmtYr(i.t)}</span><span>${i.html}</span></div>`).join('') : '<p class="muted">No new body plan spread far enough to matter. Try a higher mutation rate or a longer-lived world.</p>'}</div>
+      </div>
+      <div class="card span-6">
+        <h3>How things died</h3>
+        <div class="deaths">${deaths.map(([k, v]) => `<div class="dl"><span>${DNAME[k] || k}</span><div class="bar"><i style="width:${(v / dTot * 100).toFixed(1)}%"></i></div><span class="mono" style="text-align:right">${v.toLocaleString()}</span></div>`).join('')}</div>
+      </div>
+      <div class="card span-6">
+        <h3>The run</h3>
+        <div class="innov">${w.eventLog.filter(e => e.type !== 'arrival').length ? w.eventLog.filter(e => e.type !== 'arrival').slice(0, 10).map(e => `<div><span class="yr">Y${fmtYr(e.tick)}</span><span>${e.name}</span></div>`).join('') : '<p class="muted">No disasters struck this world.</p>'}</div>
+        <p class="hint" style="margin-top:12px">${cfg.size[0].toUpperCase() + cfg.size.slice(1)} world of ${describeBiomes()}. Founders: ${cfg.plants} plants, ${cfg.grazers} grazers, ${cfg.predators} predators, ${cfg.scavengers} scavengers. Sunlight ${Math.round(cfg.sunlight * 100)}%, mutation ${cfg.mutation}×.</p>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="again">Run again with a new seed</button>
+      <button class="btn" id="replay">Replay this exact world</button>
+      <button class="btn" id="tweak">Change the settings</button>
+    </div>`;
+  if (champ) { const o = rep.get(champ.id); drawBody($('#champ-body'), o ? o.g : champ.rep, 'cells', champ.hue); }
+  const fameBox = $('#fame');
+  fame.forEach((s, i) => {
+    const b = spRow(s, null, `<span class="rk">${i + 1}</span>`);
+    b.querySelector('.ct').innerHTML = `${(s.abundance / totalAb * 100).toFixed(1)}%<br><span class="muted" style="font-size:11px">${fmtYr(life(s))} yr</span>`;
+    b.style.cursor = 'default';
+    fameBox.appendChild(b);
+    const o = rep.get(s.id);
+    drawBody(b.querySelector('canvas'), o ? o.g : s.rep, 'cells', s.hue);
+  });
+  drawCharts(hist, $('#s-pop'), $('#s-cx'));
+  $('#again').addEventListener('click', () => startRun(rndSeed()));
+  $('#replay').addEventListener('click', () => startRun(cfg.seed));
+  $('#tweak').addEventListener('click', () => { sec.hidden = true; $('#setup').hidden = false; onCfgChange(); window.scrollTo({ top: 0 }); });
+  window.scrollTo({ top: 0 });
+}
+})();
+</script>
